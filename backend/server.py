@@ -460,6 +460,7 @@ async def import_cars_from_csv(file: UploadFile = File(...), current_user: User 
             print(f"CSV fieldnames after cleaning: {csv_reader.fieldnames}")
         
         imported_count = 0
+        updated_count = 0
         errors = []
         
         # Check if CSV has required headers
