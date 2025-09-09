@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from "./components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
-import { Search, Plus, Car, CheckCircle, XCircle, Edit, Trash2, BarChart3, Upload, Camera, FileText, LogOut, Users, Settings } from "lucide-react";
+import { Search, Plus, Car, CheckCircle, XCircle, Edit, Trash2, BarChart3, Upload, Camera, FileText, LogOut, Users, Settings, History, Archive, Calendar } from "lucide-react";
 import Login from "./components/Login";
 import UserManagement from "./components/UserManagement";
 
