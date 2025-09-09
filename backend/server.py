@@ -394,41 +394,48 @@ async def import_cars_from_csv(file: UploadFile = File(...), current_user: User 
                 # Clean and validate required fields
                 make = row.get('make', '').strip()
                 model = row.get('model', '').strip()
-                year_str = row.get('year', '').strip()
-                price_str = row.get('price', '').strip()
+                number_str = row.get('number', '').strip()
+                purchase_date_str = row.get('purchase_date', '').strip()
                 
-                print(f"Processing row {row_num}: make={make}, model={model}, year={year_str}, price={price_str}")
+                print(f"Processing row {row_num}: make={make}, model={model}, number={number_str}, purchase_date={purchase_date_str}")
                 
-                if not all([make, model, year_str, price_str]):
-                    error_msg = f"Row {row_num}: Missing required fields (make={bool(make)}, model={bool(model)}, year={bool(year_str)}, price={bool(price_str)})"
+                if not all([make, model, number_str]):
+                    error_msg = f"Row {row_num}: Missing required fields (make={bool(make)}, model={bool(model)}, number={bool(number_str)})"
                     errors.append(error_msg)
                     print(f"Error: {error_msg}")
                     continue
                 
-                # Convert and validate data types
-                try:
-                    year = int(year_str)
-                    if year < 1900 or year > 2030:
-                        errors.append(f"Row {row_num}: Year {year} is not realistic (must be between 1900-2030)")
-                        continue
-                        
-                    price = float(price_str.replace('$', '').replace(',', ''))
-                    if price <= 0:
-                        errors.append(f"Row {row_num}: Price must be greater than 0")
-                        continue
-                        
-                except ValueError as ve:
-                    error_msg = f"Row {row_num}: Invalid year or price format - {str(ve)}"
-                    errors.append(error_msg)
-                    print(f"Error: {error_msg}")
-                    continue
+                # Validate purchase_date format if provided (should be YYYY-MM-DD)
+                if purchase_date_str:
+                    try:
+                        # Try to parse the date to validate format
+                        from datetime import datetime
+                        datetime.strptime(purchase_date_str, '%Y-%m-%d')
+                    except ValueError:
+                        try:
+                            # Try alternative format DD.MM.YYYY or DD/MM/YYYY
+                            if '.' in purchase_date_str:
+                                date_parts = purchase_date_str.split('.')
+                                if len(date_parts) == 3:
+                                    purchase_date_str = f"{date_parts[2]}-{date_parts[1].zfill(2)}-{date_parts[0].zfill(2)}"
+                            elif '/' in purchase_date_str:
+                                date_parts = purchase_date_str.split('/')
+                                if len(date_parts) == 3:
+                                    purchase_date_str = f"{date_parts[2]}-{date_parts[1].zfill(2)}-{date_parts[0].zfill(2)}"
+                            # Validate the converted date
+                            datetime.strptime(purchase_date_str, '%Y-%m-%d')
+                        except ValueError:
+                            error_msg = f"Row {row_num}: Invalid purchase_date format. Use YYYY-MM-DD, DD.MM.YYYY, or DD/MM/YYYY"
+                            errors.append(error_msg)
+                            print(f"Error: {error_msg}")
+                            continue
                 
                 # Create car object
                 car_data = {
                     'make': make,
                     'model': model,
-                    'year': year,
-                    'price': price,
+                    'number': number_str,
+                    'purchase_date': purchase_date_str if purchase_date_str else None,
                     'vin': row.get('vin', '').strip() or None,
                     'image_url': row.get('image_url', '').strip() or None,
                     'status': CarStatus.absent  # All imported cars start as absent
