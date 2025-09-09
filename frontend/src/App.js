@@ -121,16 +121,20 @@ function App() {
       const formData = new FormData();
       formData.append('file', csvFile);
 
+      console.log('Uploading CSV file:', csvFile.name, 'Size:', csvFile.size);
+      
       const response = await axios.post(`${API}/cars/import-csv`, formData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          // Remove Content-Type header to let axios set it automatically for multipart/form-data
         },
       });
+
+      console.log('CSV upload response:', response.data);
 
       const result = response.data;
       toast.success(`Successfully imported ${result.imported_count} cars`);
       
-      if (result.errors.length > 0) {
+      if (result.errors && result.errors.length > 0) {
         console.warn('Import errors:', result.errors);
         toast.warning(`${result.errors.length} rows had errors - check console for details`);
       }
@@ -140,7 +144,8 @@ function App() {
       await Promise.all([fetchCars(), fetchStats()]);
     } catch (error) {
       console.error('Error uploading CSV:', error);
-      toast.error('Failed to upload CSV file');
+      console.error('Error response:', error.response?.data);
+      toast.error('Failed to upload CSV file: ' + (error.response?.data?.detail || error.message));
     } finally {
       setUploading(false);
     }
