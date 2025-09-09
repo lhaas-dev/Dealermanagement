@@ -344,10 +344,24 @@ function App() {
     }
   };
 
+  // Handle car deletion (admin only)
+  const deleteCar = async (carId) => {
+    if (!window.confirm('Möchten Sie dieses Fahrzeug wirklich löschen?')) return;
+    
+    try {
+      await axios.delete(`${API}/cars/${carId}`);
+      toast.success('Fahrzeug erfolgreich gelöscht');
+      await Promise.all([fetchCars(), fetchStats()]);
+    } catch (error) {
+      console.error('Error deleting car:', error);
+      toast.error('Fehler beim Löschen: ' + (error.response?.data?.detail || error.message));
+    }
+  };
+
   // Handle delete all cars (admin only)
   const deleteAllCars = async () => {
     const confirmed = window.confirm(
-      '⚠️ ACHTUNG: Möchten Sie wirklich ALLE Fahrzeuge löschen?\n\nDiese Aktion kann nicht rückgängig gemacht werden!\n\nTippen Sie "ALLE LÖSCHEN" zur Bestätigung:'
+      '⚠️ ACHTUNG: Möchten Sie wirklich ALLE Fahrzeuge löschen?\n\nDiese Aktion kann nicht rückgängig gemacht werden!'
     );
     
     if (!confirmed) return;
@@ -366,16 +380,6 @@ function App() {
     } catch (error) {
       console.error('Error deleting all cars:', error);
       toast.error('Fehler beim Löschen aller Fahrzeuge: ' + (error.response?.data?.detail || error.message));
-    }
-  };
-    
-    try {
-      await axios.delete(`${API}/cars/${carId}`);
-      toast.success('Car deleted successfully');
-      await Promise.all([fetchCars(), fetchStats()]);
-    } catch (error) {
-      console.error('Error deleting car:', error);
-      toast.error('Failed to delete car: ' + (error.response?.data?.detail || error.message));
     }
   };
 
