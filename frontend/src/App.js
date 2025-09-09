@@ -134,8 +134,12 @@ function App() {
       const params = new URLSearchParams();
       if (searchTerm) params.append('search', searchTerm);
       if (statusFilter && statusFilter !== 'all') params.append('status', statusFilter);
-      if (selectedMonth) params.append('month', selectedMonth);
-      if (selectedYear) params.append('year', selectedYear);
+      // Only add month/year filters if they are explicitly set (not null)
+      // This allows showing all active cars when no specific month/year is selected
+      if (selectedMonth && selectedYear) {
+        params.append('month', selectedMonth);
+        params.append('year', selectedYear);
+      }
       
       const response = await axios.get(`${API}/cars?${params.toString()}`);
       setCars(response.data);
