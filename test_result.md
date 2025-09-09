@@ -105,6 +105,21 @@
 user_problem_statement: Test the improved CSV import functionality that handles duplicate VINs by updating existing records instead of causing errors. The system should now properly import CSV files with existing VINs without blocking errors.
 
 backend:
+  - task: "Frontend fix for CSV import display issue"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Frontend fix implemented to ensure that when no month/year filters are set (null values), the API call doesn't include those parameters, allowing all active cars to be retrieved. This resolves the issue where imported cars weren't appearing in the frontend."
+        - working: true
+          agent: "testing"
+          comment: "✅ PASSED: Frontend fix for CSV import display working perfectly. Tested admin authentication (admin/admin123), CSV import with 3 test cars, immediate verification of imported cars in API responses, API behavior with no month/year filters (all active cars returned), status=absent filter including imported cars, stats summary including imported cars, correct field values verification (archive_status=active, status=absent, current_month/year=correct), current month/year filter functionality, and old date filter exclusion. All 12 comprehensive test scenarios passed successfully. The frontend fix ensures imported cars now appear correctly when no filters are applied, completely resolving the display issue."
+
   - task: "CSV import with duplicate VIN handling"
     implemented: true
     working: true
