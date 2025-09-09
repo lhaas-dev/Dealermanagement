@@ -546,20 +546,55 @@ function App() {
           <div className="text-center py-8">Loading...</div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {cars.map((car) => (
-              <Card key={car.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                {car.image_url && (
-                  <div className="h-48 bg-gray-200 overflow-hidden">
-                    <img
-                      src={car.image_url}
-                      alt={`${car.make} ${car.model}`}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.target.style.display = 'none';
-                      }}
-                    />
-                  </div>
-                )}
+            {cars.map((car) => {
+              // Use verification photo if car is present and has car_photo, otherwise use image_url
+              const displayImage = car.status === 'present' && car.car_photo 
+                ? `data:image/jpeg;base64,${car.car_photo}` 
+                : car.image_url;
+              
+              const isVerificationPhoto = car.status === 'present' && car.car_photo;
+              
+              return (
+                <Card key={car.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                  {displayImage && (
+                    <div className="h-48 bg-gray-200 overflow-hidden relative">
+                      <img
+                        src={displayImage}
+                        alt={`${car.make} ${car.model}`}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                        }}
+                      />
+                      {isVerificationPhoto && (
+                        <div className="absolute top-2 left-2 bg-green-600 text-white px-2 py-1 rounded-full text-xs flex items-center gap-1">
+                          <Camera className="w-3 h-3" />
+                          Verified
+                        </div>
+                      )}
+                      {car.status === 'present' && car.vin_photo && (
+                        <button
+                          onClick={() => {
+                            // Show VIN photo in a modal or new tab
+                            const vinImage = `data:image/jpeg;base64,${car.vin_photo}`;
+                            const newWindow = window.open();
+                            newWindow.document.write(`
+                              <html>
+                                <head><title>VIN Verification - ${car.make} ${car.model}</title></head>
+                                <body style="margin:0; display:flex; justify-content:center; align-items:center; min-height:100vh; background:#000;">
+                                  <img src="${vinImage}" style="max-width:100%; max-height:100%; object-fit:contain;" alt="VIN Verification Photo" />
+                                </body>
+                              </html>
+                            `);
+                          }}
+                          className="absolute top-2 right-2 bg-blue-600 text-white p-1 rounded-full hover:bg-blue-700 transition-colors"
+                          title="View VIN Photo"
+                        >
+                          <FileText className="w-3 h-3" />
+                        </button>
+                      )}
+                    </div>
+                  )}
                 <CardHeader>
                   <div className="flex justify-between items-start">
                     <div>
