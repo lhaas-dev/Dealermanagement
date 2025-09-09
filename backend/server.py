@@ -195,6 +195,15 @@ async def import_cars_from_csv(file: UploadFile = File(...)):
                 
                 print(f"Creating car with data: {car_data}")
                 
+                # Check for duplicate VIN if VIN is provided
+                if car_data['vin']:
+                    existing_car = await db.cars.find_one({"vin": car_data['vin']})
+                    if existing_car:
+                        error_msg = f"Row {row_num}: Car with VIN '{car_data['vin']}' already exists"
+                        errors.append(error_msg)
+                        print(f"Error: {error_msg}")
+                        continue
+                
                 car = Car(**car_data)
                 car_mongo = prepare_for_mongo(car.dict())
                 await db.cars.insert_one(car_mongo)
