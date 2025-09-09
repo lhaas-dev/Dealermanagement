@@ -514,7 +514,7 @@ async def get_car(car_id: str, current_user: User = Depends(get_current_user)):
 
 
 @api_router.put("/cars/{car_id}", response_model=Car)
-async def update_car(car_id: str, car_update: CarUpdate):
+async def update_car(car_id: str, car_update: CarUpdate, current_user: User = Depends(get_current_user)):
     """Update a car's information"""
     car = await db.cars.find_one({"id": car_id})
     if not car:
