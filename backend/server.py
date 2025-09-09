@@ -328,11 +328,20 @@ async def init_admin():
     return {"message": "Admin initialization attempted"}
 
 
-@api_router.get("/debug-users")
-async def debug_users():
-    """Debug endpoint to see all users"""
-    users = await db.users.find().to_list(1000)
-    return {"users": [{"username": u.get("username"), "role": u.get("role")} for u in users]}
+@api_router.post("/create-default-admin")
+async def create_default_admin_force():
+    """Force create default admin user"""
+    default_admin = User(
+        username="admin",
+        password_hash=get_password_hash("admin123"),
+        role=UserRole.admin
+    )
+    user_mongo = prepare_for_mongo(default_admin.dict())
+    try:
+        await db.users.insert_one(user_mongo)
+        return {"message": "Default admin user created successfully"}
+    except Exception as e:
+        return {"message": f"Error creating admin: {str(e)}"}
 
 
 @api_router.post("/cars", response_model=Car)
