@@ -322,7 +322,7 @@ async def root():
 
 
 @api_router.post("/cars", response_model=Car)
-async def create_car(car_data: CarCreate):
+async def create_car(car_data: CarCreate, current_user: User = Depends(get_current_user)):
     """Create a new car in inventory"""
     car_dict = car_data.dict()
     car = Car(**car_dict)
