@@ -1041,125 +1041,133 @@ def run_monthly_archiving_tests():
         return 1
 
 def main():
-    """Main test runner - includes both original and archiving tests"""
-    print("🚗 Starting Enhanced Car Dealership API Tests")
+    """Main test runner - focuses on extended archive deletion system"""
+    print("🚗 Starting Extended Archive Deletion System Tests")
     print("=" * 60)
     
-    # Run the monthly archiving tests (main focus)
-    archiving_result = run_monthly_archiving_tests()
+    # Run the extended archive deletion tests (main focus as per review request)
+    deletion_result = run_extended_archive_deletion_tests()
     
-    # Run basic API tests if archiving tests passed
-    if archiving_result == 0:
-        print(f"\n\n🔧 Running Basic API Functionality Tests")
+    # If deletion tests passed, also run monthly archiving tests for completeness
+    if deletion_result == 0:
+        print(f"\n\n📋 Running Monthly Archiving System Tests for Completeness")
         print("=" * 60)
+        archiving_result = run_monthly_archiving_tests()
         
-        tester = CarDealershipAPITester()
-        
-        # Login first for authenticated tests
-        tester.test_admin_login()
-        
-        # Test 1: Root endpoint
-        tester.test_root_endpoint()
-        
-        # Test 2: CSV Import functionality
-        csv_file_path = "/app/sample_inventory.csv"
-        if os.path.exists(csv_file_path):
-            print(f"\n📁 Testing CSV Import with {csv_file_path}")
-            success, import_result = tester.test_csv_import(csv_file_path)
-            if success:
-                print(f"✅ CSV Import successful: {import_result.get('imported_count', 0)} cars imported")
+        # Run basic API tests if both passed
+        if archiving_result == 0:
+            print(f"\n\n🔧 Running Basic API Functionality Tests")
+            print("=" * 60)
+            
+            tester = CarDealershipAPITester()
+            
+            # Login first for authenticated tests
+            tester.test_admin_login()
+            
+            # Test 1: Root endpoint
+            tester.test_root_endpoint()
+            
+            # Test 2: CSV Import functionality
+            csv_file_path = "/app/sample_inventory.csv"
+            if os.path.exists(csv_file_path):
+                print(f"\n📁 Testing CSV Import with {csv_file_path}")
+                success, import_result = tester.test_csv_import(csv_file_path)
+                if success:
+                    print(f"✅ CSV Import successful: {import_result.get('imported_count', 0)} cars imported")
+                else:
+                    print("❌ CSV Import failed")
             else:
-                print("❌ CSV Import failed")
-        else:
-            print(f"⚠️  CSV file not found at {csv_file_path}")
-        
-        # Test 3: Verify default status is absent for new cars
-        print(f"\n🔍 Testing Default Status Behavior")
-        tester.test_default_status_absent()
-        
-        # Test 4: Create additional test cars
-        test_cars = [
-            {
-                "make": "Toyota",
-                "model": "Camry",
-                "number": "TOY001",
-                "purchase_date": "2024-01-15",
-                "image_url": "https://example.com/camry.jpg",
-                "vin": "1HGBH41JXMN109186"
-            },
-            {
-                "make": "Honda",
-                "model": "Civic",
-                "number": "HON002",
-                "purchase_date": "2024-02-20",
-                "vin": "2HGFC2F59NH123456"
-            }
-        ]
-        
-        created_car_ids = []
-        for i, car_data in enumerate(test_cars):
-            car_id = tester.test_create_car(car_data)
-            if car_id:
-                created_car_ids.append(car_id)
-        
-        # Test 5: Get all cars
-        tester.test_get_all_cars()
-        
-        # Test 6: Get individual cars
-        for car_id in created_car_ids:
-            tester.test_get_car_by_id(car_id)
-        
-        # Test 7: Update car
-        if created_car_ids:
-            update_data = {
-                "make": "Toyota",
-                "model": "Camry Hybrid",
-                "number": "TOY001",
-                "purchase_date": "2024-01-15"
-            }
-            tester.test_update_car(created_car_ids[0], update_data)
-        
-        # Test 8: Photo Verification Tests
-        if created_car_ids:
-            print(f"\n📸 Testing Photo Verification Requirements")
+                print(f"⚠️  CSV file not found at {csv_file_path}")
             
-            # Test that photos are required for marking as present
-            tester.test_photo_verification_required(created_car_ids[0])
+            # Test 3: Verify default status is absent for new cars
+            print(f"\n🔍 Testing Default Status Behavior")
+            tester.test_default_status_absent()
             
-            # Test successful photo verification
-            tester.test_photo_verification_success(created_car_ids[0])
+            # Test 4: Create additional test cars
+            test_cars = [
+                {
+                    "make": "Toyota",
+                    "model": "Camry",
+                    "number": "TOY001",
+                    "purchase_date": "2024-01-15",
+                    "image_url": "https://example.com/camry.jpg",
+                    "vin": "1HGBH41JXMN109186"
+                },
+                {
+                    "make": "Honda",
+                    "model": "Civic",
+                    "number": "HON002",
+                    "purchase_date": "2024-02-20",
+                    "vin": "2HGFC2F59NH123456"
+                }
+            ]
             
-            # Test marking as absent (should clear photos)
-            tester.test_mark_absent_clears_photos(created_car_ids[0])
+            created_car_ids = []
+            for i, car_data in enumerate(test_cars):
+                car_id = tester.test_create_car(car_data)
+                if car_id:
+                    created_car_ids.append(car_id)
+            
+            # Test 5: Get all cars
+            tester.test_get_all_cars()
+            
+            # Test 6: Get individual cars
+            for car_id in created_car_ids:
+                tester.test_get_car_by_id(car_id)
+            
+            # Test 7: Update car
+            if created_car_ids:
+                update_data = {
+                    "make": "Toyota",
+                    "model": "Camry Hybrid",
+                    "number": "TOY001",
+                    "purchase_date": "2024-01-15"
+                }
+                tester.test_update_car(created_car_ids[0], update_data)
+            
+            # Test 8: Photo Verification Tests
+            if created_car_ids:
+                print(f"\n📸 Testing Photo Verification Requirements")
+                
+                # Test that photos are required for marking as present
+                tester.test_photo_verification_required(created_car_ids[0])
+                
+                # Test successful photo verification
+                tester.test_photo_verification_success(created_car_ids[0])
+                
+                # Test marking as absent (should clear photos)
+                tester.test_mark_absent_clears_photos(created_car_ids[0])
+            
+            # Test 9: Search functionality
+            tester.test_search_cars("Toyota")
+            tester.test_search_cars("Civic")
+            tester.test_search_cars("1HGBH41JXMN109186")  # Search by VIN
+            
+            # Test 10: Filter by status
+            tester.test_filter_cars_by_status("present")
+            tester.test_filter_cars_by_status("absent")
+            
+            # Test 11: Get statistics
+            tester.test_get_stats()
+            
+            # Test 12: Error handling - non-existent car
+            tester.test_nonexistent_car()
+            
+            # Clean up test data
+            tester.cleanup()
+            
+            # Print final results for basic tests
+            print("\n" + "=" * 60)
+            print(f"📊 Basic API Tests Results: {tester.tests_passed}/{tester.tests_run} tests passed")
+            
+            if tester.tests_passed == tester.tests_run:
+                print("🎉 All basic API tests passed!")
+            else:
+                print(f"❌ {tester.tests_run - tester.tests_passed} basic API tests failed")
         
-        # Test 9: Search functionality
-        tester.test_search_cars("Toyota")
-        tester.test_search_cars("Civic")
-        tester.test_search_cars("1HGBH41JXMN109186")  # Search by VIN
-        
-        # Test 10: Filter by status
-        tester.test_filter_cars_by_status("present")
-        tester.test_filter_cars_by_status("absent")
-        
-        # Test 11: Get statistics
-        tester.test_get_stats()
-        
-        # Test 12: Error handling - non-existent car
-        tester.test_nonexistent_car()
-        
-        # Clean up test data
-        tester.cleanup()
-        
-        # Print final results for basic tests
-        print("\n" + "=" * 60)
-        print(f"📊 Basic API Tests Results: {tester.tests_passed}/{tester.tests_run} tests passed")
-        
-        if tester.tests_passed == tester.tests_run:
-            print("🎉 All basic API tests passed!")
-        else:
-            print(f"❌ {tester.tests_run - tester.tests_passed} basic API tests failed")
-    
-    return archiving_result
+        return max(deletion_result, archiving_result)
+    else:
+        return deletion_result
 
 if __name__ == "__main__":
     sys.exit(main())
