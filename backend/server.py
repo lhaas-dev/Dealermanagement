@@ -556,11 +556,12 @@ async def import_cars_from_csv(file: UploadFile = File(...), current_user: User 
         result = CSVImportResult(
             success=True,
             imported_count=imported_count,
+            updated_count=updated_count,
             errors=errors[:10],  # Limit errors to first 10
-            message=f"Successfully imported {imported_count} cars"
+            message=f"Successfully processed {imported_count + updated_count} cars ({imported_count} new, {updated_count} updated)"
         )
         
-        print(f"Import complete: {imported_count} cars imported, {len(errors)} errors")
+        print(f"Import complete: {imported_count} cars imported, {updated_count} cars updated, {len(errors)} errors")
         return result
         
     except HTTPException:
