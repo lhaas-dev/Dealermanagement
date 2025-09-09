@@ -204,10 +204,121 @@ def parse_from_mongo(item):
     return item
 
 
+# Authentication routes
+@api_router.post("/auth/login", response_model=Token)
+async def login(user_credentials: UserLogin):
+    """Login with username and password"""
+    user = await db.users.find_one({"username": user_credentials.username})
+    if not user or not verify_password(user_credentials.password, user["password_hash"]):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user["username"]}, expires_delta=access_token_expires
+    )
+    
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": {
+            "id": user["id"],
+            "username": user["username"],
+            "role": user["role"]
+        }
+    }
+
+
+@api_router.post("/auth/create-user", response_model=UserResponse)
+async def create_user(user_data: UserCreate, current_admin: User = Depends(get_current_admin_user)):
+    """Create a new user (admin only)"""
+    # Check if username already exists
+    existing_user = await db.users.find_one({"username": user_data.username})
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Username already exists"
+        )
+    
+    # Create new user
+    hashed_password = get_password_hash(user_data.password)
+    new_user = User(
+        username=user_data.username,
+        password_hash=hashed_password,
+        role=user_data.role,
+        created_by=current_admin.id
+    )
+    
+    user_mongo = prepare_for_mongo(new_user.dict())
+    await db.users.insert_one(user_mongo)
+    
+    return UserResponse(
+        id=new_user.id,
+        username=new_user.username,
+        role=new_user.role,
+        created_at=new_user.created_at,
+        created_by=new_user.created_by
+    )
+
+
+@api_router.get("/auth/users", response_model=List[UserResponse])
+async def get_users(current_admin: User = Depends(get_current_admin_user)):
+    """Get all users (admin only)"""
+    users = await db.users.find().to_list(1000)
+    return [UserResponse(**parse_from_mongo(user)) for user in users]
+
+
+@api_router.delete("/auth/users/{user_id}")
+async def delete_user(user_id: str, current_admin: User = Depends(get_current_admin_user)):
+    """Delete a user (admin only)"""
+    if user_id == current_admin.id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot delete your own account"
+        )
+    
+    result = await db.users.delete_one({"id": user_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return {"message": "User deleted successfully"}
+
+
+@api_router.get("/auth/me", response_model=UserResponse)
+async def get_me(current_user: User = Depends(get_current_user)):
+    """Get current user info"""
+    return UserResponse(
+        id=current_user.id,
+        username=current_user.username,
+        role=current_user.role,
+        created_at=current_user.created_at,
+        created_by=current_user.created_by
+    )
+
+
+# Initialize default admin user
+async def create_default_admin():
+    """Create default admin user if no users exist"""
+    user_count = await db.users.count_documents({})
+    if user_count == 0:
+        default_admin = User(
+            username="admin",
+            password_hash=get_password_hash("admin123"),
+            role=UserRole.admin
+        )
+        user_mongo = prepare_for_mongo(default_admin.dict())
+        await db.users.insert_one(user_mongo)
+        print("✅ Default admin user created: username='admin', password='admin123'")
+        print("⚠️  Please change the default password after first login!")
+
+
 # API Routes
 @api_router.get("/")
 async def root():
-    return {"message": "Car Dealership Inventory API"}
+    return {"message": "Car Dealership Inventory API with Authentication"}
 
 
 @api_router.post("/cars", response_model=Car)
