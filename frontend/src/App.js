@@ -562,24 +562,21 @@ function App() {
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <Label htmlFor="year">Jahr</Label>
+                          <Label htmlFor="number">Nummer</Label>
                           <Input
-                            id="year"
-                            type="number"
+                            id="number"
                             required
-                            value={formData.year}
-                            onChange={(e) => setFormData({...formData, year: e.target.value})}
+                            value={formData.number}
+                            onChange={(e) => setFormData({...formData, number: e.target.value})}
                           />
                         </div>
                         <div>
-                          <Label htmlFor="price">Preis</Label>
+                          <Label htmlFor="purchase_date">Einkaufsdatum</Label>
                           <Input
-                            id="price"
-                            type="number"
-                            step="0.01"
-                            required
-                            value={formData.price}
-                            onChange={(e) => setFormData({...formData, price: e.target.value})}
+                            id="purchase_date"
+                            type="date"
+                            value={formData.purchase_date}
+                            onChange={(e) => setFormData({...formData, purchase_date: e.target.value})}
                           />
                         </div>
                       </div>
