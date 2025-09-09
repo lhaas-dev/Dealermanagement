@@ -11,6 +11,9 @@ class CarDealershipAPITester:
         self.tests_run = 0
         self.tests_passed = 0
         self.created_car_ids = []
+        self.auth_token = None
+        self.auth_headers = {'Content-Type': 'application/json'}
+        self.created_archive_ids = []
 
     def run_test(self, name, method, endpoint, expected_status, data=None, params=None):
         """Run a single API test"""
