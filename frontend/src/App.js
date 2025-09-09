@@ -400,8 +400,31 @@ function App() {
     }
   };
 
-  // Handle delete all cars (admin only)
-  const deleteAllCars = async () => {
+  // Handle monthly archive creation (admin only)
+  const createMonthlyArchive = async () => {
+    if (!archiveFormData.archive_name.trim()) {
+      toast.error('Bitte geben Sie einen Archiv-Namen ein');
+      return;
+    }
+
+    try {
+      const response = await axios.post(`${API}/archives/create-monthly`, archiveFormData);
+      const result = response.data;
+      toast.success(`Archiv "${result.archive_name}" erfolgreich erstellt`);
+      setShowArchiveDialog(false);
+      setArchiveFormData({
+        archive_name: "",
+        month: new Date().getMonth() + 1,
+        year: new Date().getFullYear()
+      });
+      
+      // Refresh data
+      await Promise.all([fetchCars(), fetchStats(), fetchAvailableMonths(), fetchArchives()]);
+    } catch (error) {
+      console.error('Error creating archive:', error);
+      toast.error('Fehler beim Erstellen des Archivs: ' + (error.response?.data?.detail || error.message));
+    }
+  };
     const confirmed = window.confirm(
       '⚠️ ACHTUNG: Möchten Sie wirklich ALLE Fahrzeuge löschen?\n\nDiese Aktion kann nicht rückgängig gemacht werden!'
     );
