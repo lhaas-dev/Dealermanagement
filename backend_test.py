@@ -656,6 +656,44 @@ class CarDealershipAPITester:
 
     def test_archive_creation_after_deletion(self):
         """Test that archive creation still works after deletion"""
+        # First create some new cars for archiving
+        print(f"\n📝 Creating new cars for post-deletion archive test...")
+        
+        test_cars = [
+            {
+                "make": "Post-Delete",
+                "model": "Test Car 1",
+                "number": "PDT001",
+                "purchase_date": "2024-01-15",
+                "vin": "POSTDEL123456789"
+            },
+            {
+                "make": "Post-Delete",
+                "model": "Test Car 2", 
+                "number": "PDT002",
+                "purchase_date": "2024-02-20",
+                "vin": "POSTDEL987654321"
+            }
+        ]
+        
+        created_car_ids = []
+        for car_data in test_cars:
+            success, response = self.run_test(
+                "Create Post-Deletion Test Car",
+                "POST",
+                "cars",
+                200,
+                data=car_data
+            )
+            if success and 'id' in response:
+                created_car_ids.append(response['id'])
+                self.created_car_ids.append(response['id'])
+        
+        if not created_car_ids:
+            print("❌ Failed to create cars for post-deletion test")
+            return False, {}
+        
+        # Now create the archive
         current_date = datetime.now()
         archive_name = f"Post-Deletion Test Archive {current_date.strftime('%B %Y')}"
         
