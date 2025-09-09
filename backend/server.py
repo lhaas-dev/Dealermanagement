@@ -480,7 +480,8 @@ async def get_cars(
     make: Optional[str] = None,
     model: Optional[str] = None,
     status: Optional[CarStatus] = None,
-    search: Optional[str] = None
+    search: Optional[str] = None,
+    current_user: User = Depends(get_current_user)
 ):
     """Get all cars with optional filtering"""
     query = {}
