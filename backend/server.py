@@ -333,7 +333,7 @@ async def create_car(car_data: CarCreate, current_user: User = Depends(get_curre
 
 
 @api_router.post("/cars/import-csv", response_model=CSVImportResult)
-async def import_cars_from_csv(file: UploadFile = File(...)):
+async def import_cars_from_csv(file: UploadFile = File(...), current_user: User = Depends(get_current_user)):
     """Import cars from CSV file"""
     if not file.filename.endswith('.csv'):
         raise HTTPException(status_code=400, detail="File must be a CSV")
