@@ -1082,134 +1082,303 @@ def run_monthly_archiving_tests():
         print(f"\n❌ {failed_tests} tests failed or critical checks failed")
         return 1
 
+def run_csv_import_display_investigation():
+    """Investigate CSV import display issue - imported cars not appearing in frontend"""
+    print("🔍 URGENT: CSV Import Display Issue Investigation")
+    print("=" * 60)
+    print("Issue: CSV import works (data goes to backend) but imported vehicles don't appear in frontend")
+    
+    tester = CarDealershipAPITester()
+    
+    # Step 1: Login as admin
+    print(f"\n🔐 STEP 1: LOGIN AS ADMIN")
+    print("-" * 40)
+    
+    success, login_response = tester.test_admin_login("admin", "admin123")
+    if not success:
+        print("❌ CRITICAL: Admin login failed - cannot proceed")
+        return 1
+    
+    print("✅ Admin login successful")
+    
+    # Step 2: Check current cars in database
+    print(f"\n📊 STEP 2: CHECK CURRENT CARS IN DATABASE")
+    print("-" * 40)
+    
+    success, cars_before = tester.run_test(
+        "Get All Cars (Before Import)",
+        "GET", 
+        "cars",
+        200
+    )
+    
+    if success:
+        print(f"✅ Found {len(cars_before)} cars in database before import")
+        print("📋 Cars before import:")
+        for i, car in enumerate(cars_before[:5]):  # Show first 5
+            print(f"   {i+1}. {car.get('make', 'N/A')} {car.get('model', 'N/A')} - Status: {car.get('status', 'N/A')}, Archive: {car.get('archive_status', 'N/A')}")
+            print(f"      Month/Year: {car.get('current_month', 'N/A')}/{car.get('current_year', 'N/A')}")
+        if len(cars_before) > 5:
+            print(f"   ... and {len(cars_before) - 5} more cars")
+    else:
+        print("❌ Failed to get current cars")
+        return 1
+    
+    # Step 3: Create test CSV and import
+    print(f"\n📁 STEP 3: CREATE AND IMPORT TEST CSV")
+    print("-" * 40)
+    
+    # Create a test CSV file
+    current_date = datetime.now()
+    test_csv_content = f"""make,model,number,purchase_date,vin
+BMW,X3 Test,BMW-TEST-001,2024-01-15,WBAXH7C30EP123456
+Mercedes,C200 Test,MB-TEST-002,2024-02-20,WDDGF4HB1CA987654
+Audi,A4 Test,AUDI-TEST-003,2024-03-10,WAUZZZ8K1DA555666"""
+    
+    csv_file_path = "/app/test_import.csv"
+    with open(csv_file_path, 'w') as f:
+        f.write(test_csv_content)
+    
+    print(f"✅ Created test CSV with 3 cars")
+    
+    # Import the CSV
+    success, import_result = tester.test_csv_import(csv_file_path)
+    if success:
+        imported_count = import_result.get('imported_count', 0)
+        updated_count = import_result.get('updated_count', 0)
+        print(f"✅ CSV Import successful: {imported_count} new, {updated_count} updated")
+        print(f"📋 Import result: {import_result}")
+    else:
+        print("❌ CSV Import failed")
+        return 1
+    
+    # Step 4: Immediately check cars after import
+    print(f"\n🔍 STEP 4: CHECK CARS IMMEDIATELY AFTER IMPORT")
+    print("-" * 40)
+    
+    success, cars_after = tester.run_test(
+        "Get All Cars (After Import)",
+        "GET",
+        "cars", 
+        200
+    )
+    
+    if success:
+        print(f"✅ Found {len(cars_after)} cars in database after import")
+        print(f"📊 Change: {len(cars_after) - len(cars_before)} cars difference")
+        
+        # Find newly imported cars
+        before_vins = {car.get('vin') for car in cars_before if car.get('vin')}
+        new_cars = [car for car in cars_after if car.get('vin') not in before_vins]
+        
+        print(f"\n📋 Newly imported cars ({len(new_cars)}):")
+        for i, car in enumerate(new_cars):
+            print(f"   {i+1}. {car.get('make', 'N/A')} {car.get('model', 'N/A')} (VIN: {car.get('vin', 'N/A')})")
+            print(f"      Status: {car.get('status', 'N/A')}")
+            print(f"      Archive Status: {car.get('archive_status', 'N/A')}")
+            print(f"      Month/Year: {car.get('current_month', 'N/A')}/{car.get('current_year', 'N/A')}")
+            print(f"      Created: {car.get('created_at', 'N/A')}")
+            print(f"      Updated: {car.get('updated_at', 'N/A')}")
+    else:
+        print("❌ Failed to get cars after import")
+        return 1
+    
+    # Step 5: Test with different query parameters
+    print(f"\n🔍 STEP 5: TEST WITH DIFFERENT QUERY PARAMETERS")
+    print("-" * 40)
+    
+    # Test 5a: No filters
+    success, cars_no_filter = tester.run_test(
+        "Get Cars (No Filters)",
+        "GET",
+        "cars",
+        200
+    )
+    print(f"✅ No filters: {len(cars_no_filter) if success else 'FAILED'} cars")
+    
+    # Test 5b: Current month/year filter
+    success, cars_current_month = tester.run_test(
+        "Get Cars (Current Month/Year)",
+        "GET",
+        "cars",
+        200,
+        params={"month": current_date.month, "year": current_date.year}
+    )
+    print(f"✅ Current month/year filter: {len(cars_current_month) if success else 'FAILED'} cars")
+    
+    # Test 5c: Status filter - absent
+    success, cars_absent = tester.run_test(
+        "Get Cars (Status: absent)",
+        "GET", 
+        "cars",
+        200,
+        params={"status": "absent"}
+    )
+    print(f"✅ Status absent filter: {len(cars_absent) if success else 'FAILED'} cars")
+    
+    # Test 5d: Status filter - present
+    success, cars_present = tester.run_test(
+        "Get Cars (Status: present)",
+        "GET",
+        "cars", 
+        200,
+        params={"status": "present"}
+    )
+    print(f"✅ Status present filter: {len(cars_present) if success else 'FAILED'} cars")
+    
+    # Test 5e: Search by make
+    success, cars_search = tester.run_test(
+        "Get Cars (Search: BMW)",
+        "GET",
+        "cars",
+        200,
+        params={"search": "BMW"}
+    )
+    print(f"✅ Search BMW: {len(cars_search) if success else 'FAILED'} cars")
+    
+    # Step 6: Analyze filtering issues
+    print(f"\n🔍 STEP 6: ANALYZE POTENTIAL FILTERING ISSUES")
+    print("-" * 40)
+    
+    # Check if imported cars have correct fields
+    if new_cars:
+        print("📋 Analyzing imported car fields:")
+        for car in new_cars:
+            print(f"\n🚗 Car: {car.get('make')} {car.get('model')}")
+            
+            # Check current_month and current_year
+            car_month = car.get('current_month')
+            car_year = car.get('current_year')
+            expected_month = current_date.month
+            expected_year = current_date.year
+            
+            if car_month == expected_month and car_year == expected_year:
+                print(f"   ✅ Month/Year correct: {car_month}/{car_year}")
+            else:
+                print(f"   ❌ Month/Year incorrect: {car_month}/{car_year} (expected: {expected_month}/{expected_year})")
+            
+            # Check archive_status
+            archive_status = car.get('archive_status')
+            if archive_status == 'active':
+                print(f"   ✅ Archive status correct: {archive_status}")
+            else:
+                print(f"   ❌ Archive status incorrect: {archive_status} (expected: active)")
+            
+            # Check status
+            status = car.get('status')
+            if status == 'absent':
+                print(f"   ✅ Status correct: {status}")
+            else:
+                print(f"   ❌ Status incorrect: {status} (expected: absent)")
+    
+    # Step 7: Test specific VIN search
+    print(f"\n🔍 STEP 7: TEST SPECIFIC VIN SEARCHES")
+    print("-" * 40)
+    
+    test_vins = ["WBAXH7C30EP123456", "WDDGF4HB1CA987654", "WAUZZZ8K1DA555666"]
+    for vin in test_vins:
+        success, vin_cars = tester.run_test(
+            f"Search by VIN ({vin})",
+            "GET",
+            "cars",
+            200,
+            params={"search": vin}
+        )
+        if success and len(vin_cars) > 0:
+            print(f"   ✅ VIN {vin}: Found {len(vin_cars)} car(s)")
+        else:
+            print(f"   ❌ VIN {vin}: Not found")
+    
+    # Step 8: Check import logic in detail
+    print(f"\n🔍 STEP 8: VERIFY IMPORT LOGIC")
+    print("-" * 40)
+    
+    # Check if Car model defaults are working
+    print("📋 Checking Car model defaults:")
+    print(f"   - Default status should be: absent")
+    print(f"   - Default archive_status should be: active") 
+    print(f"   - Default current_month should be: {current_date.month}")
+    print(f"   - Default current_year should be: {current_date.year}")
+    
+    # Verify by checking the actual imported cars
+    if new_cars:
+        all_defaults_correct = True
+        for car in new_cars:
+            if (car.get('status') != 'absent' or 
+                car.get('archive_status') != 'active' or
+                car.get('current_month') != current_date.month or
+                car.get('current_year') != current_date.year):
+                all_defaults_correct = False
+                break
+        
+        if all_defaults_correct:
+            print("✅ All imported cars have correct default values")
+        else:
+            print("❌ Some imported cars have incorrect default values")
+    
+    # Step 9: Summary and diagnosis
+    print(f"\n📊 STEP 9: SUMMARY AND DIAGNOSIS")
+    print("-" * 40)
+    
+    print(f"📋 Investigation Summary:")
+    print(f"   - Cars before import: {len(cars_before)}")
+    print(f"   - Cars after import: {len(cars_after)}")
+    print(f"   - New cars found: {len(new_cars) if 'new_cars' in locals() else 0}")
+    print(f"   - Import reported: {imported_count} new, {updated_count} updated")
+    
+    # Diagnosis
+    issues_found = []
+    
+    if len(new_cars) != imported_count:
+        issues_found.append(f"Mismatch between reported imports ({imported_count}) and actual new cars ({len(new_cars)})")
+    
+    if new_cars:
+        for car in new_cars:
+            if car.get('archive_status') != 'active':
+                issues_found.append(f"Car {car.get('make')} {car.get('model')} has archive_status '{car.get('archive_status')}' instead of 'active'")
+            if car.get('current_month') != current_date.month or car.get('current_year') != current_date.year:
+                issues_found.append(f"Car {car.get('make')} {car.get('model')} has incorrect month/year: {car.get('current_month')}/{car.get('current_year')}")
+    
+    if issues_found:
+        print(f"\n❌ ISSUES FOUND:")
+        for issue in issues_found:
+            print(f"   - {issue}")
+    else:
+        print(f"\n✅ NO CRITICAL ISSUES FOUND - Import appears to be working correctly")
+    
+    # Clean up test file
+    try:
+        os.remove(csv_file_path)
+        print(f"\n🧹 Cleaned up test CSV file")
+    except:
+        pass
+    
+    # Clean up imported test cars
+    if new_cars:
+        print(f"\n🧹 Cleaning up {len(new_cars)} imported test cars...")
+        for car in new_cars:
+            if car.get('id'):
+                tester.test_delete_car(car['id'])
+    
+    print("\n" + "=" * 60)
+    print(f"📊 Investigation Results: {tester.tests_passed}/{tester.tests_run} tests passed")
+    
+    if issues_found:
+        print(f"❌ {len(issues_found)} critical issues found that may cause display problems")
+        return 1
+    else:
+        print("✅ CSV import and display functionality appears to be working correctly")
+        return 0
+
 def main():
-    """Main test runner - focuses on extended archive deletion system"""
-    print("🚗 Starting Extended Archive Deletion System Tests")
+    """Main test runner - focuses on CSV import display investigation"""
+    print("🚗 Starting CSV Import Display Issue Investigation")
     print("=" * 60)
     
-    # Run the extended archive deletion tests (main focus as per review request)
-    deletion_result = run_extended_archive_deletion_tests()
+    # Run the CSV import display investigation (main focus as per review request)
+    investigation_result = run_csv_import_display_investigation()
     
-    # If deletion tests passed, also run monthly archiving tests for completeness
-    if deletion_result == 0:
-        print(f"\n\n📋 Running Monthly Archiving System Tests for Completeness")
-        print("=" * 60)
-        archiving_result = run_monthly_archiving_tests()
-        
-        # Run basic API tests if both passed
-        if archiving_result == 0:
-            print(f"\n\n🔧 Running Basic API Functionality Tests")
-            print("=" * 60)
-            
-            tester = CarDealershipAPITester()
-            
-            # Login first for authenticated tests
-            tester.test_admin_login()
-            
-            # Test 1: Root endpoint
-            tester.test_root_endpoint()
-            
-            # Test 2: CSV Import functionality
-            csv_file_path = "/app/sample_inventory.csv"
-            if os.path.exists(csv_file_path):
-                print(f"\n📁 Testing CSV Import with {csv_file_path}")
-                success, import_result = tester.test_csv_import(csv_file_path)
-                if success:
-                    print(f"✅ CSV Import successful: {import_result.get('imported_count', 0)} cars imported")
-                else:
-                    print("❌ CSV Import failed")
-            else:
-                print(f"⚠️  CSV file not found at {csv_file_path}")
-            
-            # Test 3: Verify default status is absent for new cars
-            print(f"\n🔍 Testing Default Status Behavior")
-            tester.test_default_status_absent()
-            
-            # Test 4: Create additional test cars
-            test_cars = [
-                {
-                    "make": "Toyota",
-                    "model": "Camry",
-                    "number": "TOY001",
-                    "purchase_date": "2024-01-15",
-                    "image_url": "https://example.com/camry.jpg",
-                    "vin": "1HGBH41JXMN109186"
-                },
-                {
-                    "make": "Honda",
-                    "model": "Civic",
-                    "number": "HON002",
-                    "purchase_date": "2024-02-20",
-                    "vin": "2HGFC2F59NH123456"
-                }
-            ]
-            
-            created_car_ids = []
-            for i, car_data in enumerate(test_cars):
-                car_id = tester.test_create_car(car_data)
-                if car_id:
-                    created_car_ids.append(car_id)
-            
-            # Test 5: Get all cars
-            tester.test_get_all_cars()
-            
-            # Test 6: Get individual cars
-            for car_id in created_car_ids:
-                tester.test_get_car_by_id(car_id)
-            
-            # Test 7: Update car
-            if created_car_ids:
-                update_data = {
-                    "make": "Toyota",
-                    "model": "Camry Hybrid",
-                    "number": "TOY001",
-                    "purchase_date": "2024-01-15"
-                }
-                tester.test_update_car(created_car_ids[0], update_data)
-            
-            # Test 8: Photo Verification Tests
-            if created_car_ids:
-                print(f"\n📸 Testing Photo Verification Requirements")
-                
-                # Test that photos are required for marking as present
-                tester.test_photo_verification_required(created_car_ids[0])
-                
-                # Test successful photo verification
-                tester.test_photo_verification_success(created_car_ids[0])
-                
-                # Test marking as absent (should clear photos)
-                tester.test_mark_absent_clears_photos(created_car_ids[0])
-            
-            # Test 9: Search functionality
-            tester.test_search_cars("Toyota")
-            tester.test_search_cars("Civic")
-            tester.test_search_cars("1HGBH41JXMN109186")  # Search by VIN
-            
-            # Test 10: Filter by status
-            tester.test_filter_cars_by_status("present")
-            tester.test_filter_cars_by_status("absent")
-            
-            # Test 11: Get statistics
-            tester.test_get_stats()
-            
-            # Test 12: Error handling - non-existent car
-            tester.test_nonexistent_car()
-            
-            # Clean up test data
-            tester.cleanup()
-            
-            # Print final results for basic tests
-            print("\n" + "=" * 60)
-            print(f"📊 Basic API Tests Results: {tester.tests_passed}/{tester.tests_run} tests passed")
-            
-            if tester.tests_passed == tester.tests_run:
-                print("🎉 All basic API tests passed!")
-            else:
-                print(f"❌ {tester.tests_run - tester.tests_passed} basic API tests failed")
-        
-        return max(deletion_result, archiving_result)
-    else:
-        return deletion_result
+    return investigation_result
 
 if __name__ == "__main__":
     sys.exit(main())
