@@ -255,18 +255,24 @@ function App() {
       const result = response.data;
       
       if (result.success) {
-        toast.success(`Successfully imported ${result.imported_count} cars`);
+        // Show detailed success message with import and update counts
+        const total_processed = result.imported_count + (result.updated_count || 0);
+        if (result.updated_count > 0) {
+          toast.success(`${total_processed} Fahrzeuge verarbeitet: ${result.imported_count} neu importiert, ${result.updated_count} aktualisiert`);
+        } else {
+          toast.success(`${result.imported_count} Fahrzeuge erfolgreich importiert`);
+        }
         
         if (result.errors && result.errors.length > 0) {
           console.warn('Import errors:', result.errors);
-          toast.warning(`${result.errors.length} rows had errors - check console for details`);
+          toast.warning(`${result.errors.length} Zeilen hatten Fehler - Details in der Konsole`);
           // Show first few errors in console
           result.errors.forEach((error, index) => {
-            if (index < 3) console.error(`Import Error ${index + 1}:`, error);
+            if (index < 3) console.error(`Import Fehler ${index + 1}:`, error);
           });
         }
       } else {
-        toast.error('Import failed: ' + (result.message || 'Unknown error'));
+        toast.error('Import fehlgeschlagen: ' + (result.message || 'Unbekannter Fehler'));
       }
 
       setShowCSVDialog(false);
