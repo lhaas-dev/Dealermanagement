@@ -655,17 +655,35 @@ async def delete_all_cars(current_admin: User = Depends(get_current_admin_user))
 
 
 @api_router.get("/cars/stats/summary")
-async def get_inventory_stats(current_user: User = Depends(get_current_user)):
+async def get_inventory_stats(
+    month: Optional[int] = None,
+    year: Optional[int] = None,
+    current_user: User = Depends(get_current_user)
+):
     """Get inventory summary statistics"""
-    total_cars = await db.cars.count_documents({})
-    present_cars = await db.cars.count_documents({"status": "present"})
-    absent_cars = await db.cars.count_documents({"status": "absent"})
+    current_date = datetime.now(timezone.utc)
+    query = {"archive_status": "active"}
+    
+    # Add month/year filter if provided
+    if month:
+        query["current_month"] = month
+    if year:
+        query["current_year"] = year
+    
+    total_cars = await db.cars.count_documents(query)
+    present_query = {**query, "status": "present"}
+    absent_query = {**query, "status": "absent"}
+    
+    present_cars = await db.cars.count_documents(present_query)
+    absent_cars = await db.cars.count_documents(absent_query)
     
     return {
         "total_cars": total_cars,
         "present_cars": present_cars,
         "absent_cars": absent_cars,
-        "present_percentage": round((present_cars / total_cars * 100) if total_cars > 0 else 0, 1)
+        "present_percentage": round((present_cars / total_cars * 100) if total_cars > 0 else 0, 1),
+        "current_month": month or current_date.month,
+        "current_year": year or current_date.year
     }
 
 
