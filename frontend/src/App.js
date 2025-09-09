@@ -400,6 +400,31 @@ function App() {
     }
   };
 
+  // Handle delete all cars (admin only)
+  const deleteAllCars = async () => {
+    const confirmed = window.confirm(
+      '⚠️ ACHTUNG: Möchten Sie wirklich ALLE Fahrzeuge löschen?\n\nDiese Aktion kann nicht rückgängig gemacht werden!'
+    );
+    
+    if (!confirmed) return;
+    
+    const confirmation = prompt('Zur Bestätigung tippen Sie: ALLE LÖSCHEN');
+    if (confirmation !== 'ALLE LÖSCHEN') {
+      toast.error('Löschung abgebrochen - falsche Bestätigung');
+      return;
+    }
+
+    try {
+      const response = await axios.delete(`${API}/cars`);
+      const result = response.data;
+      toast.success(`Alle ${result.deleted_count} Fahrzeuge wurden gelöscht`);
+      await Promise.all([fetchCars(), fetchStats(), fetchAvailableMonths()]);
+    } catch (error) {
+      console.error('Error deleting all cars:', error);
+      toast.error('Fehler beim Löschen aller Fahrzeuge: ' + (error.response?.data?.detail || error.message));
+    }
+  };
+
   // Handle monthly archive creation (admin only)
   const createMonthlyArchive = async () => {
     if (!archiveFormData.archive_name.trim()) {
@@ -423,28 +448,6 @@ function App() {
     } catch (error) {
       console.error('Error creating archive:', error);
       toast.error('Fehler beim Erstellen des Archivs: ' + (error.response?.data?.detail || error.message));
-    }
-  };
-    const confirmed = window.confirm(
-      '⚠️ ACHTUNG: Möchten Sie wirklich ALLE Fahrzeuge löschen?\n\nDiese Aktion kann nicht rückgängig gemacht werden!'
-    );
-    
-    if (!confirmed) return;
-    
-    const confirmation = prompt('Zur Bestätigung tippen Sie: ALLE LÖSCHEN');
-    if (confirmation !== 'ALLE LÖSCHEN') {
-      toast.error('Löschung abgebrochen - falsche Bestätigung');
-      return;
-    }
-
-    try {
-      const response = await axios.delete(`${API}/cars`);
-      const result = response.data;
-      toast.success(`Alle ${result.deleted_count} Fahrzeuge wurden gelöscht`);
-      await Promise.all([fetchCars(), fetchStats()]);
-    } catch (error) {
-      console.error('Error deleting all cars:', error);
-      toast.error('Fehler beim Löschen aller Fahrzeuge: ' + (error.response?.data?.detail || error.message));
     }
   };
 
