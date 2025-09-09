@@ -583,12 +583,22 @@ async def update_car_status(car_id: str, status_update: StatusUpdate, current_us
 
 
 @api_router.delete("/cars/{car_id}")
-async def delete_car(car_id: str, current_user: User = Depends(get_current_user)):
-    """Delete a car from inventory"""
+async def delete_car(car_id: str, current_admin: User = Depends(get_current_admin_user)):
+    """Delete a car from inventory (admin only)"""
     result = await db.cars.delete_one({"id": car_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Car not found")
     return {"message": "Car deleted successfully"}
+
+
+@api_router.delete("/cars")
+async def delete_all_cars(current_admin: User = Depends(get_current_admin_user)):
+    """Delete all cars from inventory (admin only)"""
+    result = await db.cars.delete_many({})
+    return {
+        "message": f"All cars deleted successfully",
+        "deleted_count": result.deleted_count
+    }
 
 
 @api_router.get("/cars/stats/summary")
