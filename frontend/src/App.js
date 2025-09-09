@@ -91,12 +91,15 @@ function App() {
     if (isAuthenticated) {
       const loadData = async () => {
         setLoading(true);
-        await Promise.all([fetchCars(), fetchStats()]);
+        await Promise.all([fetchCars(), fetchStats(), fetchAvailableMonths()]);
+        if (currentTab === 'history') {
+          await fetchArchives();
+        }
         setLoading(false);
       };
       loadData();
     }
-  }, [isAuthenticated, searchTerm, statusFilter]);
+  }, [isAuthenticated, searchTerm, statusFilter, selectedMonth, selectedYear, currentTab]);
 
   // Handle login
   const handleLogin = (loginData) => {
