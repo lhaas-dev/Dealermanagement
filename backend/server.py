@@ -128,6 +128,9 @@ async def import_cars_from_csv(file: UploadFile = File(...)):
     
     try:
         content = await file.read()
+        # Remove BOM if present (common in Excel-generated CSV files)
+        if content.startswith(b'\xef\xbb\xbf'):
+            content = content[3:]
         csv_data = content.decode('utf-8')
         
         # Debug logging
