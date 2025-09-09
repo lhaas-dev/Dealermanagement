@@ -160,7 +160,7 @@ function App() {
       }
 
       // Reset form and refresh data
-      setFormData({ make: "", model: "", year: "", price: "", image_url: "", vin: "" });
+      setFormData({ make: "", model: "", number: "", purchase_date: "", image_url: "", vin: "" });
       await Promise.all([fetchCars(), fetchStats()]);
     } catch (error) {
       console.error('Error saving car:', error);
