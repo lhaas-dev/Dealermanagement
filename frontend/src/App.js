@@ -144,8 +144,8 @@ function App() {
     try {
       const carData = {
         ...formData,
-        year: parseInt(formData.year),
-        price: parseFloat(formData.price)
+        number: formData.number,
+        purchase_date: formData.purchase_date || null
       };
 
       if (editingCar) {
