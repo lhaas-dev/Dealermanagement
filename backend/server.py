@@ -646,12 +646,114 @@ async def delete_car(car_id: str, current_admin: User = Depends(get_current_admi
 
 @api_router.delete("/cars")
 async def delete_all_cars(current_admin: User = Depends(get_current_admin_user)):
-    """Delete all cars from inventory (admin only)"""
-    result = await db.cars.delete_many({})
+    """Delete all active cars from inventory (admin only)"""
+    result = await db.cars.delete_many({"archive_status": "active"})
     return {
-        "message": f"All cars deleted successfully",
+        "message": f"All active cars deleted successfully",
         "deleted_count": result.deleted_count
     }
+
+
+# Archive endpoints
+@api_router.post("/archives/create-monthly", response_model=MonthlyArchive)
+async def create_monthly_archive(
+    archive_data: ArchiveCreate,
+    current_admin: User = Depends(get_current_admin_user)
+):
+    """Archive all current active cars into a monthly archive (admin only)"""
+    
+    # Get all active cars for this month/year
+    query = {
+        "archive_status": "active",
+        "current_month": archive_data.month,
+        "current_year": archive_data.year
+    }
+    
+    cars = await db.cars.find(query).to_list(1000)
+    
+    if not cars:
+        raise HTTPException(
+            status_code=404, 
+            detail=f"No active cars found for {archive_data.month}/{archive_data.year}"
+        )
+    
+    # Calculate stats
+    total_cars = len(cars)
+    present_cars = len([c for c in cars if c.get("status") == "present"])
+    absent_cars = len([c for c in cars if c.get("status") == "absent"])
+    
+    # Create archive
+    archive = MonthlyArchive(
+        month=archive_data.month,
+        year=archive_data.year,
+        archive_name=archive_data.archive_name,
+        total_cars=total_cars,
+        present_cars=present_cars,
+        absent_cars=absent_cars,
+        cars_data=cars,
+        archived_by=current_admin.id
+    )
+    
+    # Save archive
+    archive_mongo = prepare_for_mongo(archive.dict())
+    await db.monthly_archives.insert_one(archive_mongo)
+    
+    # Mark cars as archived
+    await db.cars.update_many(query, {
+        "$set": {
+            "archive_status": "archived",
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+    })
+    
+    return archive
+
+
+@api_router.get("/archives", response_model=List[MonthlyArchive])
+async def get_monthly_archives(current_user: User = Depends(get_current_user)):
+    """Get all monthly archives (last 4 months)"""
+    archives = await db.monthly_archives.find().sort("archived_at", -1).limit(4).to_list(4)
+    return [MonthlyArchive(**parse_from_mongo(archive)) for archive in archives]
+
+
+@api_router.get("/archives/{archive_id}", response_model=MonthlyArchive)
+async def get_archive_details(archive_id: str, current_user: User = Depends(get_current_user)):
+    """Get specific archive details with all cars"""
+    archive = await db.monthly_archives.find_one({"id": archive_id})
+    if not archive:
+        raise HTTPException(status_code=404, detail="Archive not found")
+    return MonthlyArchive(**parse_from_mongo(archive))
+
+
+@api_router.get("/cars/available-months")
+async def get_available_months(current_user: User = Depends(get_current_user)):
+    """Get available months with active cars"""
+    pipeline = [
+        {"$match": {"archive_status": "active"}},
+        {"$group": {
+            "_id": {
+                "month": "$current_month",
+                "year": "$current_year"
+            },
+            "count": {"$sum": 1}
+        }},
+        {"$sort": {"_id.year": -1, "_id.month": -1}}
+    ]
+    
+    result = await db.cars.aggregate(pipeline).to_list(12)
+    
+    return [
+        {
+            "month": item["_id"]["month"],
+            "year": item["_id"]["year"],
+            "car_count": item["count"],
+            "month_name": [
+                "Januar", "Februar", "März", "April", "Mai", "Juni",
+                "Juli", "August", "September", "Oktober", "November", "Dezember"
+            ][item["_id"]["month"] - 1]
+        }
+        for item in result
+    ]
 
 
 @api_router.get("/cars/stats/summary")
