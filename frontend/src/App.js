@@ -137,16 +137,6 @@ function App() {
     }
   };
 
-  // Initialize data
-  useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      await Promise.all([fetchCars(), fetchStats()]);
-      setLoading(false);
-    };
-    loadData();
-  }, [searchTerm, statusFilter]);
-
   // Handle form submission for adding/editing cars
   const handleSubmit = async (e) => {
     e.preventDefault();
