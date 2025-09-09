@@ -677,9 +677,11 @@ function App() {
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-2">
-                          <p className="text-2xl font-bold text-green-600">
-                            €{car.price.toLocaleString()}
-                          </p>
+                          {car.purchase_date && (
+                            <p className="text-lg font-semibold text-blue-600">
+                              Eingekauft: {new Date(car.purchase_date).toLocaleDateString('de-DE')}
+                            </p>
+                          )}
                           {car.vin && (
                             <p className="text-sm text-gray-600">VIN: {car.vin}</p>
                           )}
