@@ -41,6 +41,9 @@ function App() {
   const [uploading, setUploading] = useState(false);
   const [carPhoto, setCarPhoto] = useState(null);
   const [vinPhoto, setVinPhoto] = useState(null);
+  const carPhotoRef = useRef(null);
+  const vinPhotoRef = useRef(null);
+  
   // Archive-related state
   const [archives, setArchives] = useState([]);
   const [availableMonths, setAvailableMonths] = useState([]);
