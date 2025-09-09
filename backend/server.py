@@ -142,8 +142,8 @@ class Car(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     make: str
     model: str
-    year: int
-    price: float
+    number: str  # Internal vehicle number instead of year
+    purchase_date: Optional[str] = None  # Purchase date instead of price
     image_url: Optional[str] = None
     status: CarStatus = CarStatus.absent  # Default to absent
     vin: Optional[str] = None
@@ -156,8 +156,8 @@ class Car(BaseModel):
 class CarCreate(BaseModel):
     make: str
     model: str
-    year: int
-    price: float
+    number: str
+    purchase_date: Optional[str] = None
     image_url: Optional[str] = None
     vin: Optional[str] = None
 
@@ -165,8 +165,8 @@ class CarCreate(BaseModel):
 class CarUpdate(BaseModel):
     make: Optional[str] = None
     model: Optional[str] = None
-    year: Optional[int] = None
-    price: Optional[float] = None
+    number: Optional[str] = None
+    purchase_date: Optional[str] = None
     image_url: Optional[str] = None
     status: Optional[CarStatus] = None
     vin: Optional[str] = None
