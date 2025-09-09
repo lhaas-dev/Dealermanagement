@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./App.css";
 import axios from "axios";
 import { Toaster } from "./components/ui/sonner";
@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from "./components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
-import { Search, Plus, Car, CheckCircle, XCircle, Edit, Trash2, BarChart3 } from "lucide-react";
+import { Search, Plus, Car, CheckCircle, XCircle, Edit, Trash2, BarChart3, Upload, Camera, FileText } from "lucide-react";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -24,7 +24,16 @@ function App() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showCSVDialog, setShowCSVDialog] = useState(false);
+  const [showPhotoDialog, setShowPhotoDialog] = useState(false);
   const [editingCar, setEditingCar] = useState(null);
+  const [markingPresentCar, setMarkingPresentCar] = useState(null);
+  const [csvFile, setCsvFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [carPhoto, setCarPhoto] = useState(null);
+  const [vinPhoto, setVinPhoto] = useState(null);
+  const carPhotoRef = useRef(null);
+  const vinPhotoRef = useRef(null);
   const [formData, setFormData] = useState({
     make: "",
     model: "",
@@ -100,16 +109,123 @@ function App() {
     }
   };
 
-  // Handle status toggle
-  const toggleCarStatus = async (carId, currentStatus) => {
+  // Handle CSV upload
+  const handleCSVUpload = async () => {
+    if (!csvFile) {
+      toast.error('Please select a CSV file');
+      return;
+    }
+
+    setUploading(true);
     try {
-      const newStatus = currentStatus === 'present' ? 'absent' : 'present';
-      await axios.patch(`${API}/cars/${carId}/status`, { status: newStatus });
-      toast.success(`Car marked as ${newStatus}`);
+      const formData = new FormData();
+      formData.append('file', csvFile);
+
+      const response = await axios.post(`${API}/cars/import-csv`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      const result = response.data;
+      toast.success(`Successfully imported ${result.imported_count} cars`);
+      
+      if (result.errors.length > 0) {
+        console.warn('Import errors:', result.errors);
+        toast.warning(`${result.errors.length} rows had errors - check console for details`);
+      }
+
+      setShowCSVDialog(false);
+      setCsvFile(null);
+      await Promise.all([fetchCars(), fetchStats()]);
+    } catch (error) {
+      console.error('Error uploading CSV:', error);
+      toast.error('Failed to upload CSV file');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  // Convert file to base64
+  const fileToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result.split(',')[1]); // Remove data:image/jpeg;base64, prefix
+      reader.onerror = error => reject(error);
+    });
+  };
+
+  // Handle photo capture for car photo
+  const handleCarPhotoCapture = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      try {
+        const base64 = await fileToBase64(file);
+        setCarPhoto(base64);
+      } catch (error) {
+        toast.error('Failed to process car photo');
+      }
+    }
+  };
+
+  // Handle photo capture for VIN photo
+  const handleVinPhotoCapture = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      try {
+        const base64 = await fileToBase64(file);
+        setVinPhoto(base64);
+      } catch (error) {
+        toast.error('Failed to process VIN photo');
+      }
+    }
+  };
+
+  // Handle marking car as present with photos
+  const handleMarkPresent = async () => {
+    if (!carPhoto || !vinPhoto) {
+      toast.error('Both car photo and VIN photo are required');
+      return;
+    }
+
+    try {
+      await axios.patch(`${API}/cars/${markingPresentCar.id}/status`, {
+        status: 'present',
+        car_photo: carPhoto,
+        vin_photo: vinPhoto
+      });
+      
+      toast.success('Car marked as present with photo verification');
+      setShowPhotoDialog(false);
+      setMarkingPresentCar(null);
+      setCarPhoto(null);
+      setVinPhoto(null);
       await Promise.all([fetchCars(), fetchStats()]);
     } catch (error) {
       console.error('Error updating status:', error);
-      toast.error('Failed to update status');
+      toast.error('Failed to update car status');
+    }
+  };
+
+  // Handle status toggle - simplified for marking absent, opens photo dialog for present
+  const toggleCarStatus = async (car) => {
+    if (car.status === 'present') {
+      // Mark as absent (no photos needed)
+      try {
+        await axios.patch(`${API}/cars/${car.id}/status`, { status: 'absent' });
+        toast.success('Car marked as absent');
+        await Promise.all([fetchCars(), fetchStats()]);
+      } catch (error) {
+        console.error('Error updating status:', error);
+        toast.error('Failed to update status');
+      }
+    } else {
+      // Mark as present (requires photos)
+      setMarkingPresentCar(car);
+      setShowPhotoDialog(true);
+      setCarPhoto(null);
+      setVinPhoto(null);
     }
   };
 
@@ -155,7 +271,7 @@ function App() {
             <Car className="w-10 h-10 text-blue-600" />
             Dealership Inventory
           </h1>
-          <p className="text-slate-600">Manage and track your car inventory</p>
+          <p className="text-slate-600">Manage and track your car inventory with photo verification</p>
         </div>
 
         {/* Stats Cards */}
@@ -223,6 +339,45 @@ function App() {
             </SelectContent>
           </Select>
 
+          {/* CSV Upload Dialog */}
+          <Dialog open={showCSVDialog} onOpenChange={setShowCSVDialog}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Upload className="w-4 h-4 mr-2" />
+                Import CSV
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Import Cars from CSV</DialogTitle>
+                <DialogDescription>
+                  Upload a CSV file with columns: make, model, year, price, vin (optional), image_url (optional)
+                  <br />All imported cars will be marked as "absent" by default.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="py-4">
+                <Label htmlFor="csv-file">Select CSV File</Label>
+                <Input
+                  id="csv-file"
+                  type="file"
+                  accept=".csv"
+                  onChange={(e) => setCsvFile(e.target.files[0])}
+                  className="mt-2"
+                />
+                {csvFile && (
+                  <p className="text-sm text-gray-600 mt-2">
+                    Selected: {csvFile.name}
+                  </p>
+                )}
+              </div>
+              <DialogFooter>
+                <Button onClick={handleCSVUpload} disabled={!csvFile || uploading}>
+                  {uploading ? 'Uploading...' : 'Import Cars'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
           <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
             <DialogTrigger asChild>
               <Button onClick={resetForm}>
@@ -233,7 +388,7 @@ function App() {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Add New Car</DialogTitle>
-                <DialogDescription>Add a new car to your inventory</DialogDescription>
+                <DialogDescription>Add a new car to your inventory (will be marked as absent)</DialogDescription>
               </DialogHeader>
               <form onSubmit={handleSubmit}>
                 <div className="grid gap-4 py-4">
@@ -306,6 +461,86 @@ function App() {
           </Dialog>
         </div>
 
+        {/* Photo Verification Dialog */}
+        <Dialog open={showPhotoDialog} onOpenChange={setShowPhotoDialog}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Photo Verification Required</DialogTitle>
+              <DialogDescription>
+                To mark this car as present, please take photos of both the car and its VIN plate
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              {/* Car Photo */}
+              <div>
+                <Label>Car Photo</Label>
+                <div className="mt-2 space-y-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => carPhotoRef.current?.click()}
+                    className="w-full"
+                  >
+                    <Camera className="w-4 h-4 mr-2" />
+                    {carPhoto ? 'Car Photo Captured ✓' : 'Take Car Photo'}
+                  </Button>
+                  <input
+                    ref={carPhotoRef}
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    onChange={handleCarPhotoCapture}
+                    className="hidden"
+                  />
+                  {carPhoto && (
+                    <div className="w-full h-32 bg-green-50 border-2 border-green-200 rounded flex items-center justify-center">
+                      <CheckCircle className="w-8 h-8 text-green-600" />
+                      <span className="ml-2 text-green-700">Car photo captured</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* VIN Photo */}
+              <div>
+                <Label>VIN Photo</Label>
+                <div className="mt-2 space-y-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => vinPhotoRef.current?.click()}
+                    className="w-full"
+                  >
+                    <FileText className="w-4 h-4 mr-2" />
+                    {vinPhoto ? 'VIN Photo Captured ✓' : 'Take VIN Photo'}
+                  </Button>
+                  <input
+                    ref={vinPhotoRef}
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    onChange={handleVinPhotoCapture}
+                    className="hidden"
+                  />
+                  {vinPhoto && (
+                    <div className="w-full h-32 bg-green-50 border-2 border-green-200 rounded flex items-center justify-center">
+                      <CheckCircle className="w-8 h-8 text-green-600" />
+                      <span className="ml-2 text-green-700">VIN photo captured</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                onClick={handleMarkPresent}
+                disabled={!carPhoto || !vinPhoto}
+                className="w-full"
+              >
+                Mark as Present
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         {/* Cars Grid */}
         {loading ? (
           <div className="text-center py-8">Loading...</div>
@@ -333,6 +568,9 @@ function App() {
                     </div>
                     <Badge variant={car.status === 'present' ? 'default' : 'destructive'}>
                       {car.status}
+                      {car.status === 'present' && car.car_photo && (
+                        <Camera className="w-3 h-3 ml-1" title="Photo verified" />
+                      )}
                     </Badge>
                   </div>
                 </CardHeader>
@@ -348,7 +586,7 @@ function App() {
                       <Button
                         size="sm"
                         variant={car.status === 'present' ? 'destructive' : 'default'}
-                        onClick={() => toggleCarStatus(car.id, car.status)}
+                        onClick={() => toggleCarStatus(car)}
                         className="flex-1"
                       >
                         {car.status === 'present' ? (
@@ -374,6 +612,7 @@ function App() {
                         size="sm"
                         variant="outline"
                         onClick={() => deleteCar(car.id)}
+                        className="text-red-600 hover:text-red-700"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -466,11 +705,17 @@ function App() {
           <div className="text-center py-12">
             <Car className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-gray-600 mb-2">No cars found</h3>
-            <p className="text-gray-500 mb-4">Start by adding your first car to the inventory.</p>
-            <Button onClick={() => setShowAddDialog(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Add First Car
-            </Button>
+            <p className="text-gray-500 mb-4">Start by adding cars individually or import from CSV.</p>
+            <div className="flex justify-center gap-4">
+              <Button onClick={() => setShowAddDialog(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Add First Car
+              </Button>
+              <Button variant="outline" onClick={() => setShowCSVDialog(true)}>
+                <Upload className="w-4 h-4 mr-2" />
+                Import CSV
+              </Button>
+            </div>
           </div>
         )}
       </div>

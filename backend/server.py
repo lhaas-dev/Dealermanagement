@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException
+from fastapi import FastAPI, APIRouter, HTTPException, File, UploadFile
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -10,6 +10,9 @@ from typing import List, Optional
 import uuid
 from datetime import datetime, timezone
 from enum import Enum
+import csv
+import io
+import base64
 
 
 ROOT_DIR = Path(__file__).parent
@@ -41,8 +44,10 @@ class Car(BaseModel):
     year: int
     price: float
     image_url: Optional[str] = None
-    status: CarStatus = CarStatus.present
+    status: CarStatus = CarStatus.absent  # Default to absent
     vin: Optional[str] = None
+    car_photo: Optional[str] = None  # Base64 encoded photo of the car
+    vin_photo: Optional[str] = None  # Base64 encoded photo of the VIN
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -68,6 +73,15 @@ class CarUpdate(BaseModel):
 
 class StatusUpdate(BaseModel):
     status: CarStatus
+    car_photo: Optional[str] = None  # Required when marking as present
+    vin_photo: Optional[str] = None  # Required when marking as present
+
+
+class CSVImportResult(BaseModel):
+    success: bool
+    imported_count: int
+    errors: List[str] = []
+    message: str
 
 
 # Helper functions
@@ -104,6 +118,70 @@ async def create_car(car_data: CarCreate):
     
     await db.cars.insert_one(car_mongo)
     return car
+
+
+@api_router.post("/cars/import-csv", response_model=CSVImportResult)
+async def import_cars_from_csv(file: UploadFile = File(...)):
+    """Import cars from CSV file"""
+    if not file.filename.endswith('.csv'):
+        raise HTTPException(status_code=400, detail="File must be a CSV")
+    
+    try:
+        content = await file.read()
+        csv_data = content.decode('utf-8')
+        csv_reader = csv.DictReader(io.StringIO(csv_data))
+        
+        imported_count = 0
+        errors = []
+        
+        for row_num, row in enumerate(csv_reader, start=2):  # Start at 2 for header row
+            try:
+                # Clean and validate required fields
+                make = row.get('make', '').strip()
+                model = row.get('model', '').strip()
+                year_str = row.get('year', '').strip()
+                price_str = row.get('price', '').strip()
+                
+                if not all([make, model, year_str, price_str]):
+                    errors.append(f"Row {row_num}: Missing required fields (make, model, year, price)")
+                    continue
+                
+                # Convert and validate data types
+                try:
+                    year = int(year_str)
+                    price = float(price_str.replace('$', '').replace(',', ''))
+                except ValueError:
+                    errors.append(f"Row {row_num}: Invalid year or price format")
+                    continue
+                
+                # Create car object
+                car_data = {
+                    'make': make,
+                    'model': model,
+                    'year': year,
+                    'price': price,
+                    'vin': row.get('vin', '').strip() or None,
+                    'image_url': row.get('image_url', '').strip() or None,
+                    'status': CarStatus.absent  # All imported cars start as absent
+                }
+                
+                car = Car(**car_data)
+                car_mongo = prepare_for_mongo(car.dict())
+                await db.cars.insert_one(car_mongo)
+                imported_count += 1
+                
+            except Exception as e:
+                errors.append(f"Row {row_num}: {str(e)}")
+        
+        return CSVImportResult(
+            success=True,
+            imported_count=imported_count,
+            errors=errors[:10],  # Limit errors to first 10
+            message=f"Successfully imported {imported_count} cars"
+        )
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error processing CSV: {str(e)}")
 
 
 @api_router.get("/cars", response_model=List[Car])
@@ -162,15 +240,34 @@ async def update_car(car_id: str, car_update: CarUpdate):
 
 @api_router.patch("/cars/{car_id}/status", response_model=Car)
 async def update_car_status(car_id: str, status_update: StatusUpdate):
-    """Update a car's presence status"""
+    """Update a car's presence status with photo verification"""
     car = await db.cars.find_one({"id": car_id})
     if not car:
         raise HTTPException(status_code=404, detail="Car not found")
+    
+    # If marking as present, require both photos
+    if status_update.status == CarStatus.present:
+        if not status_update.car_photo or not status_update.vin_photo:
+            raise HTTPException(
+                status_code=400, 
+                detail="Both car photo and VIN photo are required to mark car as present"
+            )
     
     update_data = {
         "status": status_update.status,
         "updated_at": datetime.now(timezone.utc)
     }
+    
+    # Add photos if provided
+    if status_update.car_photo:
+        update_data["car_photo"] = status_update.car_photo
+    if status_update.vin_photo:
+        update_data["vin_photo"] = status_update.vin_photo
+    
+    # If marking as absent, clear photos
+    if status_update.status == CarStatus.absent:
+        update_data["car_photo"] = None
+        update_data["vin_photo"] = None
     
     update_mongo = prepare_for_mongo(update_data)
     await db.cars.update_one({"id": car_id}, {"$set": update_mongo})
