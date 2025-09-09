@@ -682,6 +682,12 @@ async def create_monthly_archive(
     present_cars = len([c for c in cars if c.get("status") == "present"])
     absent_cars = len([c for c in cars if c.get("status") == "absent"])
     
+    # Clean cars data for serialization (remove MongoDB ObjectId)
+    cleaned_cars_data = []
+    for car in cars:
+        cleaned_car = {k: v for k, v in car.items() if k != '_id'}
+        cleaned_cars_data.append(cleaned_car)
+    
     # Create archive
     archive = MonthlyArchive(
         month=archive_data.month,
@@ -690,7 +696,7 @@ async def create_monthly_archive(
         total_cars=total_cars,
         present_cars=present_cars,
         absent_cars=absent_cars,
-        cars_data=cars,
+        cars_data=cleaned_cars_data,
         archived_by=current_admin.id
     )
     
