@@ -839,24 +839,21 @@ function App() {
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="edit-year">Jahr</Label>
+                        <Label htmlFor="edit-number">Nummer</Label>
                         <Input
-                          id="edit-year"
-                          type="number"
+                          id="edit-number"
                           required
-                          value={formData.year}
-                          onChange={(e) => setFormData({...formData, year: e.target.value})}
+                          value={formData.number}
+                          onChange={(e) => setFormData({...formData, number: e.target.value})}
                         />
                       </div>
                       <div>
-                        <Label htmlFor="edit-price">Preis</Label>
+                        <Label htmlFor="edit-purchase_date">Einkaufsdatum</Label>
                         <Input
-                          id="edit-price"
-                          type="number"
-                          step="0.01"
-                          required
-                          value={formData.price}
-                          onChange={(e) => setFormData({...formData, price: e.target.value})}
+                          id="edit-purchase_date"
+                          type="date"
+                          value={formData.purchase_date}
+                          onChange={(e) => setFormData({...formData, purchase_date: e.target.value})}
                         />
                       </div>
                     </div>
