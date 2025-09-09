@@ -719,7 +719,24 @@ async def create_monthly_archive(
 async def get_monthly_archives(current_user: User = Depends(get_current_user)):
     """Get all monthly archives (last 6 months)"""
     archives = await db.monthly_archives.find().sort("archived_at", -1).limit(6).to_list(6)
-    return [MonthlyArchive(**parse_from_mongo(archive)) for archive in archives]
+    
+    # Clean archives data to remove ObjectId fields
+    cleaned_archives = []
+    for archive in archives:
+        # Remove MongoDB ObjectId
+        cleaned_archive = {k: v for k, v in archive.items() if k != '_id'}
+        
+        # Clean cars_data within each archive
+        if 'cars_data' in cleaned_archive and cleaned_archive['cars_data']:
+            cleaned_cars = []
+            for car in cleaned_archive['cars_data']:
+                cleaned_car = {k: v for k, v in car.items() if k != '_id'}
+                cleaned_cars.append(cleaned_car)
+            cleaned_archive['cars_data'] = cleaned_cars
+        
+        cleaned_archives.append(MonthlyArchive(**parse_from_mongo(cleaned_archive)))
+    
+    return cleaned_archives
 
 
 @api_router.get("/archives/{archive_id}", response_model=MonthlyArchive)
@@ -728,7 +745,19 @@ async def get_archive_details(archive_id: str, current_user: User = Depends(get_
     archive = await db.monthly_archives.find_one({"id": archive_id})
     if not archive:
         raise HTTPException(status_code=404, detail="Archive not found")
-    return MonthlyArchive(**parse_from_mongo(archive))
+    
+    # Clean archive data to remove ObjectId fields
+    cleaned_archive = {k: v for k, v in archive.items() if k != '_id'}
+    
+    # Clean cars_data within the archive
+    if 'cars_data' in cleaned_archive and cleaned_archive['cars_data']:
+        cleaned_cars = []
+        for car in cleaned_archive['cars_data']:
+            cleaned_car = {k: v for k, v in car.items() if k != '_id'}
+            cleaned_cars.append(cleaned_car)
+        cleaned_archive['cars_data'] = cleaned_cars
+    
+    return MonthlyArchive(**parse_from_mongo(cleaned_archive))
 
 
 @api_router.get("/cars/available-months")
