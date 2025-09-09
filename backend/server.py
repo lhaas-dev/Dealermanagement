@@ -328,6 +328,13 @@ async def init_admin():
     return {"message": "Admin initialization attempted"}
 
 
+@api_router.get("/debug-users")
+async def debug_users():
+    """Debug endpoint to see all users"""
+    users = await db.users.find().to_list(1000)
+    return {"users": [{"username": u.get("username"), "role": u.get("role")} for u in users]}
+
+
 @api_router.post("/cars", response_model=Car)
 async def create_car(car_data: CarCreate, current_user: User = Depends(get_current_user)):
     """Create a new car in inventory"""
