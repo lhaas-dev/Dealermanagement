@@ -64,7 +64,135 @@ class CarDealershipAPITester:
 
     def test_root_endpoint(self):
         """Test root API endpoint"""
-        return self.run_test("Root Endpoint", "GET", "", 200)
+        return self.run_test("Root Endpoint", "GET", "", 200, use_auth=False)
+
+    def test_admin_login(self, username="admin", password="admin123"):
+        """Test admin login and store JWT token"""
+        login_data = {
+            "username": username,
+            "password": password
+        }
+        
+        success, response = self.run_test(
+            "Admin Login",
+            "POST",
+            "auth/login",
+            200,
+            data=login_data,
+            use_auth=False
+        )
+        
+        if success and 'access_token' in response:
+            self.auth_token = response['access_token']
+            print(f"✅ JWT Token obtained and stored")
+            return True, response
+        else:
+            print(f"❌ Failed to obtain JWT token")
+            return False, {}
+
+    def test_get_current_user(self):
+        """Test getting current user info"""
+        return self.run_test("Get Current User", "GET", "auth/me", 200)
+
+    def test_archives_list(self):
+        """Test GET /api/archives endpoint (should return 6 months max)"""
+        success, response = self.run_test("Get Archives List", "GET", "archives", 200)
+        
+        if success and isinstance(response, list):
+            print(f"✅ Archives list returned {len(response)} archives")
+            if len(response) <= 6:
+                print(f"✅ Archive count is within 6 months limit")
+            else:
+                print(f"❌ Archive count ({len(response)}) exceeds 6 months limit")
+                return False, response
+        
+        return success, response
+
+    def test_archive_details(self, archive_id):
+        """Test GET /api/archives/{archive_id} endpoint"""
+        return self.run_test(
+            f"Get Archive Details ({archive_id[:8]}...)",
+            "GET",
+            f"archives/{archive_id}",
+            200
+        )
+
+    def test_create_monthly_archive(self, archive_name, month=None, year=None):
+        """Test POST /api/archives/create-monthly endpoint"""
+        current_date = datetime.now()
+        archive_data = {
+            "archive_name": archive_name,
+            "month": month or current_date.month,
+            "year": year or current_date.year
+        }
+        
+        success, response = self.run_test(
+            "Create Monthly Archive",
+            "POST",
+            "archives/create-monthly",
+            200,
+            data=archive_data
+        )
+        
+        if success and 'id' in response:
+            self.created_archive_ids.append(response['id'])
+            print(f"✅ Archive created with ID: {response['id']}")
+        
+        return success, response
+
+    def test_create_archive_without_auth(self, archive_name, month=None, year=None):
+        """Test archive creation without authentication (should fail)"""
+        current_date = datetime.now()
+        archive_data = {
+            "archive_name": archive_name,
+            "month": month or current_date.month,
+            "year": year or current_date.year
+        }
+        
+        return self.run_test(
+            "Create Archive Without Auth (should fail)",
+            "POST",
+            "archives/create-monthly",
+            401,
+            data=archive_data,
+            use_auth=False
+        )
+
+    def test_create_archive_missing_name(self, month=None, year=None):
+        """Test archive creation with missing archive_name (should fail)"""
+        current_date = datetime.now()
+        archive_data = {
+            "month": month or current_date.month,
+            "year": year or current_date.year
+        }
+        
+        return self.run_test(
+            "Create Archive Missing Name (should fail)",
+            "POST",
+            "archives/create-monthly",
+            422,  # Validation error
+            data=archive_data
+        )
+
+    def test_create_archive_no_cars(self, archive_name, month=1, year=2020):
+        """Test archive creation with no active cars for selected month/year (should fail)"""
+        archive_data = {
+            "archive_name": archive_name,
+            "month": month,
+            "year": year
+        }
+        
+        return self.run_test(
+            "Create Archive No Cars (should fail)",
+            "POST",
+            "archives/create-monthly",
+            404,
+            data=archive_data
+        )
+
+    def test_get_available_months(self):
+        """Test getting available months with active cars"""
+        return self.run_test("Get Available Months", "GET", "cars/available-months", 200)
 
     def test_create_car(self, car_data):
         """Test creating a new car"""
