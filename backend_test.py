@@ -1,6 +1,8 @@
 import requests
 import sys
 import json
+import base64
+import os
 from datetime import datetime
 
 class CarDealershipAPITester:
