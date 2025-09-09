@@ -499,10 +499,14 @@ function App() {
 
         {/* Navigation Tabs */}
         <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-8">
+          <TabsList className="grid w-full grid-cols-3 mb-8">
             <TabsTrigger value="inventory" className="flex items-center gap-2">
               <Car className="w-4 h-4" />
               Inventar
+            </TabsTrigger>
+            <TabsTrigger value="history" className="flex items-center gap-2">
+              <History className="w-4 h-4" />
+              Historie
             </TabsTrigger>
             {user.role === 'admin' && (
               <TabsTrigger value="users" className="flex items-center gap-2">
