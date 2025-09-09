@@ -569,7 +569,7 @@ async def update_car_status(car_id: str, status_update: StatusUpdate, current_us
 
 
 @api_router.delete("/cars/{car_id}")
-async def delete_car(car_id: str):
+async def delete_car(car_id: str, current_user: User = Depends(get_current_user)):
     """Delete a car from inventory"""
     result = await db.cars.delete_one({"id": car_id})
     if result.deleted_count == 0:
