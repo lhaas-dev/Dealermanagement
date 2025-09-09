@@ -824,6 +824,25 @@ async def get_archive_details(archive_id: str, current_user: User = Depends(get_
     return MonthlyArchive(**parse_from_mongo(cleaned_archive))
 
 
+@api_router.delete("/archives/{archive_id}")
+async def delete_archive(archive_id: str, current_admin: User = Depends(get_current_admin_user)):
+    """Delete a specific archive (admin only)"""
+    result = await db.monthly_archives.delete_one({"id": archive_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Archive not found")
+    return {"message": "Archive deleted successfully", "deleted_archive_id": archive_id}
+
+
+@api_router.delete("/archives")
+async def delete_all_archives(current_admin: User = Depends(get_current_admin_user)):
+    """Delete all archives (admin only)"""
+    result = await db.monthly_archives.delete_many({})
+    return {
+        "message": f"All archives deleted successfully",
+        "deleted_count": result.deleted_count
+    }
+
+
 @api_router.get("/cars/available-months")
 async def get_available_months(current_user: User = Depends(get_current_user)):
     """Get available months with active cars"""
