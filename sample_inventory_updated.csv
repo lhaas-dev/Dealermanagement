@@ -1,0 +1,11 @@
+make,model,number,purchase_date,vin,image_url
+Toyota,Camry,A001,2024-01-15,1HGBH41JXMN109186,https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=400
+Honda,Civic,A002,2024-02-20,2HGFC2F59NH123456,https://images.unsplash.com/photo-1619362280288-fde1d3232bd1?w=400
+Ford,F-150,A003,2024-01-30,1FTFW1ET5NFC12345,https://images.unsplash.com/photo-1558049637-693da5c6bfd4?w=400
+BMW,X5,A004,2024-03-10,5UXWX9C54P9L12345,https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400
+Mercedes,C-Class,A005,2024-02-05,WDDGF4HB6DR123456,https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=400
+Audi,A4,A006,2024-01-25,WAUENAF47MA123456,https://images.unsplash.com/photo-1610768764270-790fbec18178?w=400
+Chevrolet,Silverado,A007,2024-03-01,1GCUYDED5PZ123456,https://images.unsplash.com/photo-1563720223185-11003d516935?w=400
+Nissan,Altima,A008,2024-02-15,1N4AL3AP4NC123456,https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400
+Hyundai,Elantra,A009,2024-01-20,KMHL14JA7PA123456,https://images.unsplash.com/photo-1542362567-b07e54358753?w=400
+Mazda,CX-5,A010,2024-03-05,JM3KFBDM6N0123456,https://images.unsplash.com/photo-1551830820-330a71b6dde8?w=400
