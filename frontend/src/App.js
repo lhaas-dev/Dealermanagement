@@ -46,8 +46,8 @@ function App() {
   const [formData, setFormData] = useState({
     make: "",
     model: "",
-    year: "",
-    price: "",
+    number: "",
+    purchase_date: "",
     image_url: "",
     vin: ""
   });
