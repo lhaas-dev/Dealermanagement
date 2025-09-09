@@ -307,9 +307,20 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "Update archives endpoint to support 6 months"
+    - "Monthly archive creation endpoint"
+    - "Archive detail retrieval endpoint"
+    - "Create History component"
+    - "Integrate History tab in App.js"
+    - "Archive Month button integration"
+    - "Automatic 6-month archive cleanup"
+    - "Delete single archive endpoint"
+    - "Delete all archives endpoint"
+    - "Delete single archive functionality"
+    - "Delete all archives functionality"
   stuck_tasks: []
-  test_all: false
+  test_all: true
   test_priority: "high_first"
 
 agent_communication:
@@ -319,3 +330,5 @@ agent_communication:
       message: "✅ COMPREHENSIVE TESTING COMPLETED: Monthly archiving system is fully functional and working perfectly. All 19 archive-related tests passed including authentication, archive creation, data integrity, error handling, and admin access control. Fixed critical ObjectId serialization issues and routing conflicts during testing. System ready for production use."
     - agent: "testing"
       message: "✅ FRONTEND TESTING COMPLETED SUCCESSFULLY: All 3 frontend tasks are now working perfectly. History component displays 4 archive cards with proper statistics, German localization is 100% complete (7/7 texts), archive creation dialog works with form validation, archive details modal shows comprehensive information including car data, and responsive design works on mobile/tablet. API integration confirmed with proper /api/archives calls. No critical issues found - system ready for production."
+    - agent: "main"
+      message: "EXTENDED ARCHIVE DELETION SYSTEM: 1) Added automatic 6-month cleanup on server startup 2) Implemented DELETE endpoints for single and bulk archive deletion 3) Added frontend delete buttons with 'LÖSCHEN' confirmation dialogs 4) All admin-only with proper security. Ready for testing of new deletion functionality."
