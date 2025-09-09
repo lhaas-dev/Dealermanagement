@@ -7,7 +7,7 @@ import { Badge } from "./ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-import { Archive, Calendar, Car, CheckCircle, XCircle, Camera, FileText, Eye } from "lucide-react";
+import { Archive, Calendar, Car, CheckCircle, XCircle, Camera, FileText, Eye, Trash2 } from "lucide-react";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
