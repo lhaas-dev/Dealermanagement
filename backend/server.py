@@ -711,8 +711,8 @@ async def create_monthly_archive(
 
 @api_router.get("/archives", response_model=List[MonthlyArchive])
 async def get_monthly_archives(current_user: User = Depends(get_current_user)):
-    """Get all monthly archives (last 4 months)"""
-    archives = await db.monthly_archives.find().sort("archived_at", -1).limit(4).to_list(4)
+    """Get all monthly archives (last 6 months)"""
+    archives = await db.monthly_archives.find().sort("archived_at", -1).limit(6).to_list(6)
     return [MonthlyArchive(**parse_from_mongo(archive)) for archive in archives]
 
 
