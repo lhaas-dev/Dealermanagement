@@ -152,39 +152,48 @@ backend:
 
   - task: "Automatic 6-month archive cleanup"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
           comment: "Added automatic cleanup function that runs on server startup, deletes archives older than 6 months (180 days)"
+        - working: true
+          agent: "testing"
+          comment: "✅ PASSED: Automatic 6-month cleanup functionality verified. Function exists in server code and runs on startup. Server logs show '✅ Archive cleanup: No archives older than 6 months found' confirming the cleanup is working correctly. Cleanup logic properly calculates 180 days (6 months) and would delete older archives if they existed."
 
   - task: "Delete single archive endpoint"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
           comment: "Added DELETE /api/archives/{archive_id} endpoint with admin-only access control"
+        - working: true
+          agent: "testing"
+          comment: "✅ PASSED: Single archive deletion endpoint working perfectly. DELETE /api/archives/{archive_id} successfully deletes archives with proper admin-only access control (returns 403 for unauthenticated requests). Archive is completely removed from database (verified with 404 on subsequent GET). Non-existent archive deletion properly returns 404. All security and error handling working correctly."
 
   - task: "Delete all archives endpoint"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
           comment: "Added DELETE /api/archives endpoint for bulk deletion with admin-only access control"
+        - working: true
+          agent: "testing"
+          comment: "✅ PASSED: Bulk archive deletion endpoint working perfectly. DELETE /api/archives successfully deletes all archives with proper admin-only access control (returns 403 for unauthenticated requests). Returns correct deletion count in response. All archives completely removed from database (verified with empty archives list). Integration testing confirms archive creation still works after bulk deletion. Data integrity maintained throughout deletion process."
 
 frontend:
   - task: "Create History component"
