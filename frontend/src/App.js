@@ -665,7 +665,7 @@ function App() {
                         <div className="flex justify-between items-start">
                           <div>
                             <CardTitle className="text-lg">{car.make} {car.model}</CardTitle>
-                            <CardDescription>{car.year}</CardDescription>
+                            <CardDescription>Nr. {car.number}</CardDescription>
                           </div>
                           <Badge variant={car.status === 'present' ? 'default' : 'destructive'}>
                             {car.status === 'present' ? 'Anwesend' : 'Abwesend'}
