@@ -15,7 +15,6 @@ import { Search, Plus, Car, CheckCircle, XCircle, Edit, Trash2, BarChart3, Uploa
 import Login from "./components/Login";
 import UserManagement from "./components/UserManagement";
 import HistoryComponent from "./components/History";
-import History from "./components/History";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
