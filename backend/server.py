@@ -131,13 +131,24 @@ async def import_cars_from_csv(file: UploadFile = File(...)):
         # Remove BOM if present (common in Excel-generated CSV files)
         if content.startswith(b'\xef\xbb\xbf'):
             content = content[3:]
+        
         csv_data = content.decode('utf-8')
+        
+        # Also remove BOM from the beginning of the string if it's still there
+        if csv_data.startswith('\ufeff'):
+            csv_data = csv_data[1:]
         
         # Debug logging
         print(f"CSV file received: {file.filename}, size: {len(content)} bytes")
         print(f"CSV content preview: {csv_data[:200]}...")
         
         csv_reader = csv.DictReader(io.StringIO(csv_data))
+        
+        # Clean field names to remove any invisible characters
+        if csv_reader.fieldnames:
+            cleaned_fieldnames = [field.strip().replace('\ufeff', '') for field in csv_reader.fieldnames]
+            csv_reader.fieldnames = cleaned_fieldnames
+            print(f"CSV fieldnames after cleaning: {csv_reader.fieldnames}")
         
         imported_count = 0
         errors = []
