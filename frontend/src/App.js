@@ -900,8 +900,8 @@ function App() {
                     CSV importieren
                   </Button>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </TabsContent>
 
           {/* User Management Tab (Admin only) */}
