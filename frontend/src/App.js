@@ -41,8 +41,17 @@ function App() {
   const [uploading, setUploading] = useState(false);
   const [carPhoto, setCarPhoto] = useState(null);
   const [vinPhoto, setVinPhoto] = useState(null);
-  const carPhotoRef = useRef(null);
-  const vinPhotoRef = useRef(null);
+  // Archive-related state
+  const [archives, setArchives] = useState([]);
+  const [availableMonths, setAvailableMonths] = useState([]);
+  const [selectedMonth, setSelectedMonth] = useState(null);
+  const [selectedYear, setSelectedYear] = useState(null);
+  const [showArchiveDialog, setShowArchiveDialog] = useState(false);
+  const [archiveFormData, setArchiveFormData] = useState({
+    archive_name: "",
+    month: new Date().getMonth() + 1,
+    year: new Date().getFullYear()
+  });
   const [formData, setFormData] = useState({
     make: "",
     model: "",
