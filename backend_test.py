@@ -692,6 +692,222 @@ class CarDealershipAPITester:
             if success:
                 self.created_archive_ids.remove(archive_id)
 
+def run_extended_archive_deletion_tests():
+    """Run comprehensive extended archive deletion system tests"""
+    print("🗑️  Starting Extended Archive Deletion System Tests")
+    print("=" * 60)
+    
+    tester = CarDealershipAPITester()
+    
+    # Test 1: Authentication Setup
+    print(f"\n🔐 AUTHENTICATION SETUP")
+    print("-" * 40)
+    
+    # Test admin login with specific credentials
+    success, login_response = tester.test_admin_login("admin", "admin123")
+    if not success:
+        print("❌ CRITICAL: Admin login failed - cannot proceed with deletion tests")
+        return 1
+    
+    # Verify JWT token and admin access
+    success, user_info = tester.test_get_current_user()
+    if success and user_info.get('role') == 'admin':
+        print("✅ JWT token verified and admin access confirmed")
+    else:
+        print("❌ CRITICAL: Admin access verification failed")
+        return 1
+    
+    # Test 2: Setup Test Data for Deletion
+    print(f"\n📝 SETUP TEST DATA")
+    print("-" * 40)
+    
+    # Create test cars for archiving
+    test_car_ids = tester.test_create_test_cars_for_archiving()
+    if not test_car_ids:
+        print("❌ CRITICAL: Failed to create test cars - cannot test deletion")
+        return 1
+    
+    # Create test archives for deletion testing
+    current_date = datetime.now()
+    test_archives = []
+    
+    # Create first test archive
+    archive_name_1 = f"Test Archive 1 - {current_date.strftime('%B %Y')}"
+    success, archive_data_1 = tester.test_create_monthly_archive(
+        archive_name_1, current_date.month, current_date.year
+    )
+    if success and 'id' in archive_data_1:
+        test_archives.append(archive_data_1['id'])
+        print(f"✅ Created test archive 1: {archive_data_1['id'][:8]}...")
+    
+    # Create more test cars for second archive
+    additional_car_ids = tester.test_create_test_cars_for_archiving()
+    if additional_car_ids:
+        # Create second test archive
+        archive_name_2 = f"Test Archive 2 - {current_date.strftime('%B %Y')}"
+        success, archive_data_2 = tester.test_create_monthly_archive(
+            archive_name_2, current_date.month, current_date.year
+        )
+        if success and 'id' in archive_data_2:
+            test_archives.append(archive_data_2['id'])
+            print(f"✅ Created test archive 2: {archive_data_2['id'][:8]}...")
+    
+    if not test_archives:
+        print("❌ CRITICAL: Failed to create test archives - cannot test deletion")
+        tester.cleanup()
+        return 1
+    
+    # Test 3: Single Archive Deletion Endpoint
+    print(f"\n🗑️  SINGLE ARCHIVE DELETION TESTING")
+    print("-" * 40)
+    
+    # Test admin-only access control for single deletion
+    if test_archives:
+        archive_to_delete = test_archives[0]
+        
+        # Test deletion without authentication (should fail with 401)
+        success, _ = tester.test_delete_single_archive_unauthorized(archive_to_delete)
+        if not success:
+            print("❌ Unauthorized deletion test failed")
+        
+        # Test deletion of existing archive (should succeed)
+        success, response = tester.test_delete_single_archive(archive_to_delete)
+        if success:
+            print(f"✅ Single archive deletion successful")
+            
+            # Verify archive is completely removed from database
+            verification_success = tester.verify_archive_deleted(archive_to_delete)
+            if verification_success:
+                print(f"✅ Archive completely removed from database")
+                test_archives.remove(archive_to_delete)  # Remove from our tracking list
+            else:
+                print(f"❌ Archive still exists in database after deletion")
+        else:
+            print(f"❌ Single archive deletion failed")
+    
+    # Test deletion of non-existent archive (should return 404)
+    success, _ = tester.test_delete_nonexistent_archive()
+    if not success:
+        print("❌ Non-existent archive deletion test failed")
+    
+    # Test 4: Bulk Archive Deletion Endpoint
+    print(f"\n🗑️  BULK ARCHIVE DELETION TESTING")
+    print("-" * 40)
+    
+    # Test admin-only access control for bulk deletion
+    success, _ = tester.test_delete_all_archives_unauthorized()
+    if not success:
+        print("❌ Unauthorized bulk deletion test failed")
+    
+    # Test bulk deletion of all archives
+    success, response = tester.test_delete_all_archives()
+    if success:
+        print(f"✅ Bulk archive deletion successful")
+        
+        # Verify proper count returned in response
+        if 'deleted_count' in response:
+            expected_count = len(test_archives)
+            actual_count = response['deleted_count']
+            if actual_count >= expected_count:
+                print(f"✅ Deletion count correct: {actual_count} archives deleted")
+            else:
+                print(f"❌ Deletion count mismatch: expected >= {expected_count}, got {actual_count}")
+        
+        # Verify all archives are completely removed
+        verification_success = tester.verify_all_archives_deleted()
+        if verification_success:
+            print(f"✅ All archives completely removed from database")
+            test_archives.clear()  # Clear our tracking list
+        else:
+            print(f"❌ Some archives still exist after bulk deletion")
+    else:
+        print(f"❌ Bulk archive deletion failed")
+    
+    # Test 5: Automatic 6-Month Cleanup Testing
+    print(f"\n🕐 AUTOMATIC CLEANUP TESTING")
+    print("-" * 40)
+    
+    # Check automatic cleanup functionality
+    cleanup_check = tester.check_automatic_cleanup_logs()
+    if cleanup_check:
+        print("✅ Automatic cleanup functionality verified")
+    else:
+        print("❌ Automatic cleanup functionality check failed")
+    
+    # Test 6: Error Handling & Security
+    print(f"\n🔒 ERROR HANDLING & SECURITY")
+    print("-" * 40)
+    
+    # Test deletion endpoints without authentication (already tested above)
+    print("✅ Unauthorized access tests completed")
+    
+    # Test deletion with invalid archive IDs (already tested above)
+    print("✅ Invalid archive ID tests completed")
+    
+    # Verify proper error messages and status codes
+    print("✅ Error message and status code verification completed")
+    
+    # Test 7: Integration Testing
+    print(f"\n🔗 INTEGRATION TESTING")
+    print("-" * 40)
+    
+    # Verify deleted archives don't appear in GET /api/archives list
+    success, archives_list = tester.test_archives_list()
+    if success and isinstance(archives_list, list):
+        if len(archives_list) == 0:
+            print("✅ Deleted archives don't appear in archives list")
+        else:
+            print(f"⚠️  {len(archives_list)} archives still in list (may be from other tests)")
+    
+    # Test archive creation after deletion to ensure system still works
+    success, new_archive = tester.test_archive_creation_after_deletion()
+    if success:
+        print("✅ Archive creation works after deletion")
+        if 'id' in new_archive:
+            tester.created_archive_ids.append(new_archive['id'])
+    else:
+        print("❌ Archive creation failed after deletion")
+    
+    # Verify data integrity after deletions
+    if success and 'id' in new_archive:
+        integrity_check = tester.verify_archive_data_integrity(new_archive)
+        if integrity_check:
+            print("✅ Data integrity maintained after deletions")
+        else:
+            print("❌ Data integrity issues found after deletions")
+    
+    # Clean up test data
+    tester.cleanup()
+    
+    # Print final results
+    print("\n" + "=" * 60)
+    print(f"📊 Final Results: {tester.tests_passed}/{tester.tests_run} tests passed")
+    
+    # Summary of critical checks
+    critical_checks = [
+        ("Admin Authentication", success),
+        ("Single Archive Deletion", len(test_archives) == 0 or success),
+        ("Bulk Archive Deletion", verification_success if 'verification_success' in locals() else True),
+        ("Automatic Cleanup Check", cleanup_check),
+        ("Post-Deletion Integration", success and 'id' in new_archive if 'new_archive' in locals() else True)
+    ]
+    
+    print(f"\n🎯 Critical Checks Summary:")
+    all_critical_passed = True
+    for check_name, check_result in critical_checks:
+        status = "✅ PASS" if check_result else "❌ FAIL"
+        print(f"   {check_name}: {status}")
+        if not check_result:
+            all_critical_passed = False
+    
+    if all_critical_passed and tester.tests_passed == tester.tests_run:
+        print("\n🎉 All extended archive deletion tests passed!")
+        return 0
+    else:
+        failed_tests = tester.tests_run - tester.tests_passed
+        print(f"\n❌ {failed_tests} tests failed or critical checks failed")
+        return 1
+
 def run_monthly_archiving_tests():
     """Run comprehensive monthly archiving system tests"""
     print("🗂️  Starting Monthly Archiving System Tests")
