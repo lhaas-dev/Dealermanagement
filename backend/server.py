@@ -539,12 +539,20 @@ async def get_cars(
     model: Optional[str] = None,
     status: Optional[CarStatus] = None,
     search: Optional[str] = None,
+    month: Optional[int] = None,
+    year: Optional[int] = None,
     current_user: User = Depends(get_current_user)
 ):
-    """Get all cars with optional filtering"""
-    query = {}
+    """Get all active cars with optional filtering"""
+    query = {"archive_status": "active"}  # Only show active cars by default
     
-    # Add filters
+    # Add month/year filter if provided
+    if month:
+        query["current_month"] = month
+    if year:
+        query["current_year"] = year
+    
+    # Add other filters
     if make:
         query["make"] = {"$regex": make, "$options": "i"}
     if model:
@@ -555,7 +563,8 @@ async def get_cars(
         query["$or"] = [
             {"make": {"$regex": search, "$options": "i"}},
             {"model": {"$regex": search, "$options": "i"}},
-            {"vin": {"$regex": search, "$options": "i"}}
+            {"vin": {"$regex": search, "$options": "i"}},
+            {"number": {"$regex": search, "$options": "i"}}
         ]
     
     cars = await db.cars.find(query).to_list(1000)
