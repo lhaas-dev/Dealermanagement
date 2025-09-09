@@ -107,17 +107,6 @@ const Login = ({ onLogin }) => {
               {loading ? 'Anmeldung...' : 'Anmelden'}
             </Button>
           </form>
-
-          <div className="mt-6 text-center text-sm text-gray-600">
-            <div className="bg-blue-50 p-3 rounded-lg">
-              <p className="font-semibold">Standard Login:</p>
-              <p>Username: <code className="bg-white px-2 py-1 rounded">admin</code></p>
-              <p>Passwort: <code className="bg-white px-2 py-1 rounded">admin123</code></p>
-              <p className="text-xs mt-2 text-orange-600">
-                ⚠️ Bitte Passwort nach erstem Login ändern!
-              </p>
-            </div>
-          </div>
         </CardContent>
       </Card>
     </div>
