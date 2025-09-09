@@ -208,6 +208,154 @@ class CarDealershipAPITester:
             return response['id']
         return None
 
+    def test_create_test_cars_for_archiving(self):
+        """Create test cars with different statuses for archiving tests"""
+        current_date = datetime.now()
+        
+        test_cars = [
+            {
+                "make": "BMW",
+                "model": "X5",
+                "number": "BMW001",
+                "purchase_date": "2024-01-15",
+                "vin": "WBAFR7C50BC123456"
+            },
+            {
+                "make": "Mercedes",
+                "model": "C-Class",
+                "number": "MB002", 
+                "purchase_date": "2024-02-20",
+                "vin": "WDDGF4HB1CA123789"
+            },
+            {
+                "make": "Audi",
+                "model": "A4",
+                "number": "AUDI003",
+                "purchase_date": "2024-03-10",
+                "vin": "WAUZZZ8K1DA123456"
+            }
+        ]
+        
+        created_ids = []
+        for car_data in test_cars:
+            car_id = self.test_create_car(car_data)
+            if car_id:
+                created_ids.append(car_id)
+        
+        # Mark some cars as present with photos
+        if len(created_ids) >= 2:
+            fake_image_data = base64.b64encode(b"fake_image_data").decode('utf-8')
+            
+            # Mark first car as present
+            self.test_update_car_status(
+                created_ids[0], 
+                "present", 
+                car_photo=fake_image_data, 
+                vin_photo=fake_image_data
+            )
+            
+            # Leave second car as absent (default)
+            # Mark third car as present if exists
+            if len(created_ids) >= 3:
+                self.test_update_car_status(
+                    created_ids[2], 
+                    "present", 
+                    car_photo=fake_image_data, 
+                    vin_photo=fake_image_data
+                )
+        
+        return created_ids
+
+    def verify_archive_data_integrity(self, archive_data):
+        """Verify archive contains correct data and statistics"""
+        print(f"\n🔍 Verifying Archive Data Integrity...")
+        
+        required_fields = ['id', 'month', 'year', 'archive_name', 'total_cars', 
+                          'present_cars', 'absent_cars', 'cars_data', 'archived_at', 'archived_by']
+        
+        integrity_passed = True
+        
+        # Check required fields
+        for field in required_fields:
+            if field not in archive_data:
+                print(f"❌ Missing required field: {field}")
+                integrity_passed = False
+            else:
+                print(f"✅ Field present: {field}")
+        
+        # Verify statistics match car data
+        if 'cars_data' in archive_data and 'total_cars' in archive_data:
+            actual_total = len(archive_data['cars_data'])
+            expected_total = archive_data['total_cars']
+            
+            if actual_total == expected_total:
+                print(f"✅ Total cars count matches: {actual_total}")
+            else:
+                print(f"❌ Total cars mismatch: expected {expected_total}, got {actual_total}")
+                integrity_passed = False
+            
+            # Count present/absent cars in data
+            present_count = sum(1 for car in archive_data['cars_data'] if car.get('status') == 'present')
+            absent_count = sum(1 for car in archive_data['cars_data'] if car.get('status') == 'absent')
+            
+            if present_count == archive_data.get('present_cars', 0):
+                print(f"✅ Present cars count matches: {present_count}")
+            else:
+                print(f"❌ Present cars mismatch: expected {archive_data.get('present_cars', 0)}, got {present_count}")
+                integrity_passed = False
+                
+            if absent_count == archive_data.get('absent_cars', 0):
+                print(f"✅ Absent cars count matches: {absent_count}")
+            else:
+                print(f"❌ Absent cars mismatch: expected {archive_data.get('absent_cars', 0)}, got {absent_count}")
+                integrity_passed = False
+        
+        # Verify archived_at timestamp
+        if 'archived_at' in archive_data:
+            try:
+                archived_time = datetime.fromisoformat(archive_data['archived_at'].replace('Z', '+00:00'))
+                current_time = datetime.now()
+                time_diff = abs((current_time - archived_time.replace(tzinfo=None)).total_seconds())
+                
+                if time_diff < 300:  # Within 5 minutes
+                    print(f"✅ Archived timestamp is recent: {archive_data['archived_at']}")
+                else:
+                    print(f"❌ Archived timestamp seems old: {archive_data['archived_at']}")
+                    integrity_passed = False
+            except Exception as e:
+                print(f"❌ Invalid archived_at format: {e}")
+                integrity_passed = False
+        
+        # Verify cars have photo data preserved
+        if 'cars_data' in archive_data:
+            cars_with_photos = [car for car in archive_data['cars_data'] 
+                              if car.get('status') == 'present' and 
+                              (car.get('car_photo') or car.get('vin_photo'))]
+            
+            if cars_with_photos:
+                print(f"✅ {len(cars_with_photos)} cars have photo data preserved")
+            else:
+                print(f"⚠️  No cars with photo data found (may be expected)")
+        
+        return integrity_passed
+
+    def verify_cars_archived_status(self, expected_car_ids):
+        """Verify that cars are marked as archived after archiving"""
+        print(f"\n🔍 Verifying Cars Archived Status...")
+        
+        archived_count = 0
+        for car_id in expected_car_ids:
+            success, car_data = self.test_get_car_by_id(car_id)
+            if success and car_data.get('archive_status') == 'archived':
+                print(f"✅ Car {car_id[:8]}... marked as archived")
+                archived_count += 1
+            elif success:
+                print(f"❌ Car {car_id[:8]}... not marked as archived (status: {car_data.get('archive_status')})")
+            else:
+                print(f"❌ Failed to get car {car_id[:8]}...")
+        
+        return archived_count == len(expected_car_ids)
+
     def test_get_all_cars(self):
         """Test getting all cars"""
         return self.run_test("Get All Cars", "GET", "cars", 200)
