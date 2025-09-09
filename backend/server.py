@@ -321,6 +321,13 @@ async def root():
     return {"message": "Car Dealership Inventory API with Authentication"}
 
 
+@api_router.post("/init-admin")
+async def init_admin():
+    """Initialize default admin user (for setup purposes)"""
+    await create_default_admin()
+    return {"message": "Admin initialization attempted"}
+
+
 @api_router.post("/cars", response_model=Car)
 async def create_car(car_data: CarCreate, current_user: User = Depends(get_current_user)):
     """Create a new car in inventory"""
