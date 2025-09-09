@@ -379,495 +379,538 @@ function App() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-slate-800 mb-2 flex items-center gap-3">
-            <Car className="w-10 h-10 text-blue-600" />
-            Dealership Inventory
-          </h1>
-          <p className="text-slate-600">Manage and track your car inventory with photo verification</p>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Cars</CardTitle>
-              <BarChart3 className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.total_cars || 0}</div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Present</CardTitle>
-              <CheckCircle className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">{stats.present_cars || 0}</div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Absent</CardTitle>
-              <XCircle className="h-4 w-4 text-red-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-red-600">{stats.absent_cars || 0}</div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Present %</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.present_percentage || 0}%</div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Controls */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <Input
-              placeholder="Search by make, model, or VIN..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+        {/* Header with User Info */}
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-4xl font-bold text-slate-800 mb-2 flex items-center gap-3">
+              <Car className="w-10 h-10 text-blue-600" />
+              Dealership Inventory
+            </h1>
+            <p className="text-slate-600">Fahrzeug-Inventarsystem mit Foto-Verifizierung</p>
           </div>
           
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full sm:w-[180px]">
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="present">Present</SelectItem>
-              <SelectItem value="absent">Absent</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-4">
+            <div className="text-right">
+              <p className="font-semibold text-slate-800">{user.username}</p>
+              <p className="text-sm text-slate-600">
+                {user.role === 'admin' ? 'Administrator' : 'Benutzer'}
+              </p>
+            </div>
+            <Button variant="outline" onClick={handleLogout}>
+              <LogOut className="w-4 h-4 mr-2" />
+              Abmelden
+            </Button>
+          </div>
+        </div>
 
-          {/* CSV Upload Dialog */}
-          <Dialog open={showCSVDialog} onOpenChange={setShowCSVDialog}>
-            <DialogTrigger asChild>
-              <Button variant="outline">
-                <Upload className="w-4 h-4 mr-2" />
-                Import CSV
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Import Cars from CSV</DialogTitle>
-                <DialogDescription>
-                  Upload a CSV file with columns: make, model, year, price, vin (optional), image_url (optional)
-                  <br />All imported cars will be marked as "absent" by default.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="py-4">
-                <Label htmlFor="csv-file">Select CSV File</Label>
+        {/* Navigation Tabs */}
+        <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-8">
+            <TabsTrigger value="inventory" className="flex items-center gap-2">
+              <Car className="w-4 h-4" />
+              Inventar
+            </TabsTrigger>
+            {user.role === 'admin' && (
+              <TabsTrigger value="users" className="flex items-center gap-2">
+                <Users className="w-4 h-4" />
+                Benutzerverwaltung
+              </TabsTrigger>
+            )}
+          </TabsList>
+
+          {/* Inventory Tab */}
+          <TabsContent value="inventory">
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Gesamt Fahrzeuge</CardTitle>
+                  <BarChart3 className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats.total_cars || 0}</div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Anwesend</CardTitle>
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-green-600">{stats.present_cars || 0}</div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Abwesend</CardTitle>
+                  <XCircle className="h-4 w-4 text-red-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-red-600">{stats.absent_cars || 0}</div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Anwesend %</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats.present_percentage || 0}%</div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Rest of the existing inventory interface */}
+            {/* Controls */}
+            <div className="flex flex-col sm:flex-row gap-4 mb-6">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <Input
-                  id="csv-file"
-                  type="file"
-                  accept=".csv"
-                  onChange={(e) => setCsvFile(e.target.files[0])}
-                  className="mt-2"
+                  placeholder="Suche nach Marke, Modell oder VIN..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
                 />
-                {csvFile && (
-                  <p className="text-sm text-gray-600 mt-2">
-                    Selected: {csvFile.name}
-                  </p>
-                )}
               </div>
-              <DialogFooter>
-                <Button onClick={handleCSVUpload} disabled={!csvFile || uploading}>
-                  {uploading ? 'Uploading...' : 'Import Cars'}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+              
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="Nach Status filtern" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Alle Status</SelectItem>
+                  <SelectItem value="present">Anwesend</SelectItem>
+                  <SelectItem value="absent">Abwesend</SelectItem>
+                </SelectContent>
+              </Select>
 
-          <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-            <DialogTrigger asChild>
-              <Button onClick={resetForm}>
-                <Plus className="w-4 h-4 mr-2" />
-                Add Car
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add New Car</DialogTitle>
-                <DialogDescription>Add a new car to your inventory (will be marked as absent)</DialogDescription>
-              </DialogHeader>
-              <form onSubmit={handleSubmit}>
-                <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="make">Make</Label>
-                      <Input
-                        id="make"
-                        required
-                        value={formData.make}
-                        onChange={(e) => setFormData({...formData, make: e.target.value})}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="model">Model</Label>
-                      <Input
-                        id="model"
-                        required
-                        value={formData.model}
-                        onChange={(e) => setFormData({...formData, model: e.target.value})}
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="year">Year</Label>
-                      <Input
-                        id="year"
-                        type="number"
-                        required
-                        value={formData.year}
-                        onChange={(e) => setFormData({...formData, year: e.target.value})}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="price">Price</Label>
-                      <Input
-                        id="price"
-                        type="number"
-                        step="0.01"
-                        required
-                        value={formData.price}
-                        onChange={(e) => setFormData({...formData, price: e.target.value})}
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <Label htmlFor="vin">VIN</Label>
+              {/* CSV Upload Dialog */}
+              <Dialog open={showCSVDialog} onOpenChange={setShowCSVDialog}>
+                <DialogTrigger asChild>
+                  <Button variant="outline">
+                    <Upload className="w-4 h-4 mr-2" />
+                    CSV Import
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Fahrzeuge aus CSV importieren</DialogTitle>
+                    <DialogDescription>
+                      CSV-Datei mit Spalten: make, model, year, price, vin (optional), image_url (optional)
+                      <br />Alle importierten Fahrzeuge werden als "abwesend" markiert.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="py-4">
+                    <Label htmlFor="csv-file">CSV-Datei auswählen</Label>
                     <Input
-                      id="vin"
-                      value={formData.vin}
-                      onChange={(e) => setFormData({...formData, vin: e.target.value})}
+                      id="csv-file"
+                      type="file"
+                      accept=".csv"
+                      onChange={(e) => setCsvFile(e.target.files[0])}
+                      className="mt-2"
                     />
+                    {csvFile && (
+                      <p className="text-sm text-gray-600 mt-2">
+                        Ausgewählt: {csvFile.name}
+                      </p>
+                    )}
                   </div>
+                  <DialogFooter>
+                    <Button onClick={handleCSVUpload} disabled={!csvFile || uploading}>
+                      {uploading ? 'Wird hochgeladen...' : 'Fahrzeuge importieren'}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
+              <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+                <DialogTrigger asChild>
+                  <Button onClick={resetForm}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Fahrzeug hinzufügen
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Neues Fahrzeug hinzufügen</DialogTitle>
+                    <DialogDescription>Neues Fahrzeug zum Inventar hinzufügen (wird als abwesend markiert)</DialogDescription>
+                  </DialogHeader>
+                  <form onSubmit={handleSubmit}>
+                    <div className="grid gap-4 py-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="make">Marke</Label>
+                          <Input
+                            id="make"
+                            required
+                            value={formData.make}
+                            onChange={(e) => setFormData({...formData, make: e.target.value})}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="model">Modell</Label>
+                          <Input
+                            id="model"
+                            required
+                            value={formData.model}
+                            onChange={(e) => setFormData({...formData, model: e.target.value})}
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="year">Jahr</Label>
+                          <Input
+                            id="year"
+                            type="number"
+                            required
+                            value={formData.year}
+                            onChange={(e) => setFormData({...formData, year: e.target.value})}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="price">Preis</Label>
+                          <Input
+                            id="price"
+                            type="number"
+                            step="0.01"
+                            required
+                            value={formData.price}
+                            onChange={(e) => setFormData({...formData, price: e.target.value})}
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <Label htmlFor="vin">VIN</Label>
+                        <Input
+                          id="vin"
+                          value={formData.vin}
+                          onChange={(e) => setFormData({...formData, vin: e.target.value})}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="image_url">Bild-URL</Label>
+                        <Input
+                          id="image_url"
+                          type="url"
+                          value={formData.image_url}
+                          onChange={(e) => setFormData({...formData, image_url: e.target.value})}
+                        />
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button type="submit">Fahrzeug hinzufügen</Button>
+                    </DialogFooter>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            {/* Rest of the cars grid and dialogs - keeping existing code */}
+            {/* Cars Grid */}
+            {loading ? (
+              <div className="text-center py-8">Wird geladen...</div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {cars.map((car) => {
+                  // Use verification photo if car is present and has car_photo, otherwise use image_url
+                  const displayImage = car.status === 'present' && car.car_photo 
+                    ? `data:image/jpeg;base64,${car.car_photo}` 
+                    : car.image_url;
+                  
+                  const isVerificationPhoto = car.status === 'present' && car.car_photo;
+                  
+                  return (
+                    <Card key={car.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                      {displayImage && (
+                        <div className="h-48 bg-gray-200 overflow-hidden relative">
+                          <img
+                            src={displayImage}
+                            alt={`${car.make} ${car.model}`}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                            }}
+                          />
+                          {isVerificationPhoto && (
+                            <div className="absolute top-2 left-2 bg-green-600 text-white px-2 py-1 rounded-full text-xs flex items-center gap-1">
+                              <Camera className="w-3 h-3" />
+                              Verified
+                            </div>
+                          )}
+                          {car.status === 'present' && car.vin_photo && (
+                            <button
+                              onClick={() => {
+                                // Show VIN photo in a modal or new tab
+                                const vinImage = `data:image/jpeg;base64,${car.vin_photo}`;
+                                const newWindow = window.open();
+                                newWindow.document.write(`
+                                  <html>
+                                    <head><title>VIN Verification - ${car.make} ${car.model}</title></head>
+                                    <body style="margin:0; display:flex; justify-content:center; align-items:center; min-height:100vh; background:#000;">
+                                      <img src="${vinImage}" style="max-width:100%; max-height:100%; object-fit:contain;" alt="VIN Verification Photo" />
+                                    </body>
+                                  </html>
+                                `);
+                              }}
+                              className="absolute top-2 right-2 bg-blue-600 text-white p-1 rounded-full hover:bg-blue-700 transition-colors"
+                              title="VIN-Foto anzeigen"
+                            >
+                              <FileText className="w-3 h-3" />
+                            </button>
+                          )}
+                        </div>
+                      )}
+                      <CardHeader>
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <CardTitle className="text-lg">{car.make} {car.model}</CardTitle>
+                            <CardDescription>{car.year}</CardDescription>
+                          </div>
+                          <Badge variant={car.status === 'present' ? 'default' : 'destructive'}>
+                            {car.status === 'present' ? 'Anwesend' : 'Abwesend'}
+                            {car.status === 'present' && car.car_photo && (
+                              <Camera className="w-3 h-3 ml-1" title="Foto verifiziert" />
+                            )}
+                          </Badge>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2">
+                          <p className="text-2xl font-bold text-green-600">
+                            €{car.price.toLocaleString()}
+                          </p>
+                          {car.vin && (
+                            <p className="text-sm text-gray-600">VIN: {car.vin}</p>
+                          )}
+                          <div className="flex gap-2 pt-4">
+                            <Button
+                              size="sm"
+                              variant={car.status === 'present' ? 'destructive' : 'default'}
+                              onClick={() => toggleCarStatus(car)}
+                              className="flex-1"
+                            >
+                              {car.status === 'present' ? (
+                                <>
+                                  <XCircle className="w-4 h-4 mr-1" />
+                                  Als abwesend markieren
+                                </>
+                              ) : (
+                                <>
+                                  <CheckCircle className="w-4 h-4 mr-1" />
+                                  Als anwesend markieren
+                                </>
+                              )}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => openEditDialog(car)}
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => deleteCar(car.id)}
+                              className="text-red-600 hover:text-red-700"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Photo Verification Dialog */}
+            <Dialog open={showPhotoDialog} onOpenChange={setShowPhotoDialog}>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Foto-Verifizierung erforderlich</DialogTitle>
+                  <DialogDescription>
+                    Um dieses Fahrzeug als anwesend zu markieren, nehmen Sie bitte Fotos vom Fahrzeug und der VIN-Plakette auf
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  {/* Car Photo */}
                   <div>
-                    <Label htmlFor="image_url">Image URL</Label>
-                    <Input
-                      id="image_url"
-                      type="url"
-                      value={formData.image_url}
-                      onChange={(e) => setFormData({...formData, image_url: e.target.value})}
-                    />
+                    <Label>Fahrzeug-Foto</Label>
+                    <div className="mt-2 space-y-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => carPhotoRef.current?.click()}
+                        className="w-full"
+                      >
+                        <Camera className="w-4 h-4 mr-2" />
+                        {carPhoto ? 'Fahrzeug-Foto aufgenommen ✓' : 'Fahrzeug-Foto aufnehmen'}
+                      </Button>
+                      <input
+                        ref={carPhotoRef}
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        onChange={handleCarPhotoCapture}
+                        className="hidden"
+                      />
+                      {carPhoto && (
+                        <div className="w-full h-32 bg-green-50 border-2 border-green-200 rounded flex items-center justify-center">
+                          <CheckCircle className="w-8 h-8 text-green-600" />
+                          <span className="ml-2 text-green-700">Fahrzeug-Foto aufgenommen</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* VIN Photo */}
+                  <div>
+                    <Label>VIN-Foto</Label>
+                    <div className="mt-2 space-y-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => vinPhotoRef.current?.click()}
+                        className="w-full"
+                      >
+                        <FileText className="w-4 h-4 mr-2" />
+                        {vinPhoto ? 'VIN-Foto aufgenommen ✓' : 'VIN-Foto aufnehmen'}
+                      </Button>
+                      <input
+                        ref={vinPhotoRef}
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        onChange={handleVinPhotoCapture}
+                        className="hidden"
+                      />
+                      {vinPhoto && (
+                        <div className="w-full h-32 bg-green-50 border-2 border-green-200 rounded flex items-center justify-center">
+                          <CheckCircle className="w-8 h-8 text-green-600" />
+                          <span className="ml-2 text-green-700">VIN-Foto aufgenommen</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button type="submit">Add Car</Button>
+                  <Button
+                    onClick={handleMarkPresent}
+                    disabled={!carPhoto || !vinPhoto}
+                    className="w-full"
+                  >
+                    Als anwesend markieren
+                  </Button>
                 </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
-        </div>
+              </DialogContent>
+            </Dialog>
 
-        {/* Photo Verification Dialog */}
-        <Dialog open={showPhotoDialog} onOpenChange={setShowPhotoDialog}>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Photo Verification Required</DialogTitle>
-              <DialogDescription>
-                To mark this car as present, please take photos of both the car and its VIN plate
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              {/* Car Photo */}
-              <div>
-                <Label>Car Photo</Label>
-                <div className="mt-2 space-y-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => carPhotoRef.current?.click()}
-                    className="w-full"
-                  >
-                    <Camera className="w-4 h-4 mr-2" />
-                    {carPhoto ? 'Car Photo Captured ✓' : 'Take Car Photo'}
-                  </Button>
-                  <input
-                    ref={carPhotoRef}
-                    type="file"
-                    accept="image/*"
-                    capture="environment"
-                    onChange={handleCarPhotoCapture}
-                    className="hidden"
-                  />
-                  {carPhoto && (
-                    <div className="w-full h-32 bg-green-50 border-2 border-green-200 rounded flex items-center justify-center">
-                      <CheckCircle className="w-8 h-8 text-green-600" />
-                      <span className="ml-2 text-green-700">Car photo captured</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* VIN Photo */}
-              <div>
-                <Label>VIN Photo</Label>
-                <div className="mt-2 space-y-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => vinPhotoRef.current?.click()}
-                    className="w-full"
-                  >
-                    <FileText className="w-4 h-4 mr-2" />
-                    {vinPhoto ? 'VIN Photo Captured ✓' : 'Take VIN Photo'}
-                  </Button>
-                  <input
-                    ref={vinPhotoRef}
-                    type="file"
-                    accept="image/*"
-                    capture="environment"
-                    onChange={handleVinPhotoCapture}
-                    className="hidden"
-                  />
-                  {vinPhoto && (
-                    <div className="w-full h-32 bg-green-50 border-2 border-green-200 rounded flex items-center justify-center">
-                      <CheckCircle className="w-8 h-8 text-green-600" />
-                      <span className="ml-2 text-green-700">VIN photo captured</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button
-                onClick={handleMarkPresent}
-                disabled={!carPhoto || !vinPhoto}
-                className="w-full"
-              >
-                Mark as Present
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* Cars Grid */}
-        {loading ? (
-          <div className="text-center py-8">Loading...</div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {cars.map((car) => {
-              // Use verification photo if car is present and has car_photo, otherwise use image_url
-              const displayImage = car.status === 'present' && car.car_photo 
-                ? `data:image/jpeg;base64,${car.car_photo}` 
-                : car.image_url;
-              
-              const isVerificationPhoto = car.status === 'present' && car.car_photo;
-              
-              return (
-                <Card key={car.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                  {displayImage && (
-                    <div className="h-48 bg-gray-200 overflow-hidden relative">
-                      <img
-                        src={displayImage}
-                        alt={`${car.make} ${car.model}`}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.target.style.display = 'none';
-                        }}
-                      />
-                      {isVerificationPhoto && (
-                        <div className="absolute top-2 left-2 bg-green-600 text-white px-2 py-1 rounded-full text-xs flex items-center gap-1">
-                          <Camera className="w-3 h-3" />
-                          Verified
-                        </div>
-                      )}
-                      {car.status === 'present' && car.vin_photo && (
-                        <button
-                          onClick={() => {
-                            // Show VIN photo in a modal or new tab
-                            const vinImage = `data:image/jpeg;base64,${car.vin_photo}`;
-                            const newWindow = window.open();
-                            newWindow.document.write(`
-                              <html>
-                                <head><title>VIN Verification - ${car.make} ${car.model}</title></head>
-                                <body style="margin:0; display:flex; justify-content:center; align-items:center; min-height:100vh; background:#000;">
-                                  <img src="${vinImage}" style="max-width:100%; max-height:100%; object-fit:contain;" alt="VIN Verification Photo" />
-                                </body>
-                              </html>
-                            `);
-                          }}
-                          className="absolute top-2 right-2 bg-blue-600 text-white p-1 rounded-full hover:bg-blue-700 transition-colors"
-                          title="View VIN Photo"
-                        >
-                          <FileText className="w-3 h-3" />
-                        </button>
-                      )}
-                    </div>
-                  )}
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
+            {/* Edit Dialog */}
+            <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Fahrzeug bearbeiten</DialogTitle>
+                  <DialogDescription>Fahrzeug-Informationen aktualisieren</DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handleSubmit}>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <CardTitle className="text-lg">{car.make} {car.model}</CardTitle>
-                        <CardDescription>{car.year}</CardDescription>
+                        <Label htmlFor="edit-make">Marke</Label>
+                        <Input
+                          id="edit-make"
+                          required
+                          value={formData.make}
+                          onChange={(e) => setFormData({...formData, make: e.target.value})}
+                        />
                       </div>
-                      <Badge variant={car.status === 'present' ? 'default' : 'destructive'}>
-                        {car.status}
-                        {car.status === 'present' && car.car_photo && (
-                          <Camera className="w-3 h-3 ml-1" title="Photo verified" />
-                        )}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <p className="text-2xl font-bold text-green-600">
-                        ${car.price.toLocaleString()}
-                      </p>
-                      {car.vin && (
-                        <p className="text-sm text-gray-600">VIN: {car.vin}</p>
-                      )}
-                      <div className="flex gap-2 pt-4">
-                        <Button
-                          size="sm"
-                          variant={car.status === 'present' ? 'destructive' : 'default'}
-                          onClick={() => toggleCarStatus(car)}
-                          className="flex-1"
-                        >
-                          {car.status === 'present' ? (
-                            <>
-                              <XCircle className="w-4 h-4 mr-1" />
-                              Mark Absent
-                            </>
-                          ) : (
-                            <>
-                              <CheckCircle className="w-4 h-4 mr-1" />
-                              Mark Present
-                            </>
-                          )}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => openEditDialog(car)}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => deleteCar(car.id)}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                      <div>
+                        <Label htmlFor="edit-model">Modell</Label>
+                        <Input
+                          id="edit-model"
+                          required
+                          value={formData.model}
+                          onChange={(e) => setFormData({...formData, model: e.target.value})}
+                        />
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        )}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="edit-year">Jahr</Label>
+                        <Input
+                          id="edit-year"
+                          type="number"
+                          required
+                          value={formData.year}
+                          onChange={(e) => setFormData({...formData, year: e.target.value})}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="edit-price">Preis</Label>
+                        <Input
+                          id="edit-price"
+                          type="number"
+                          step="0.01"
+                          required
+                          value={formData.price}
+                          onChange={(e) => setFormData({...formData, price: e.target.value})}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label htmlFor="edit-vin">VIN</Label>
+                      <Input
+                        id="edit-vin"
+                        value={formData.vin}
+                        onChange={(e) => setFormData({...formData, vin: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="edit-image_url">Bild-URL</Label>
+                      <Input
+                        id="edit-image_url"
+                        type="url"
+                        value={formData.image_url}
+                        onChange={(e) => setFormData({...formData, image_url: e.target.value})}
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button type="submit">Fahrzeug aktualisieren</Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
 
-        {/* Edit Dialog */}
-        <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Edit Car</DialogTitle>
-              <DialogDescription>Update car information</DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleSubmit}>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="edit-make">Make</Label>
-                    <Input
-                      id="edit-make"
-                      required
-                      value={formData.make}
-                      onChange={(e) => setFormData({...formData, make: e.target.value})}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="edit-model">Model</Label>
-                    <Input
-                      id="edit-model"
-                      required
-                      value={formData.model}
-                      onChange={(e) => setFormData({...formData, model: e.target.value})}
-                    />
-                  </div>
+            {cars.length === 0 && !loading && (
+              <div className="text-center py-12">
+                <Car className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-600 mb-2">Keine Fahrzeuge gefunden</h3>
+                <p className="text-gray-500 mb-4">Beginnen Sie, indem Sie Fahrzeuge einzeln hinzufügen oder aus CSV importieren.</p>
+                <div className="flex justify-center gap-4">
+                  <Button onClick={() => setShowAddDialog(true)}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Erstes Fahrzeug hinzufügen
+                  </Button>
+                  <Button variant="outline" onClick={() => setShowCSVDialog(true)}>
+                    <Upload className="w-4 h-4 mr-2" />
+                    CSV importieren
+                  </Button>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="edit-year">Year</Label>
-                    <Input
-                      id="edit-year"
-                      type="number"
-                      required
-                      value={formData.year}
-                      onChange={(e) => setFormData({...formData, year: e.target.value})}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="edit-price">Price</Label>
-                    <Input
-                      id="edit-price"
-                      type="number"
-                      step="0.01"
-                      required
-                      value={formData.price}
-                      onChange={(e) => setFormData({...formData, price: e.target.value})}
-                    />
-                  </div>
-                </div>
-                <div>
-                  <Label htmlFor="edit-vin">VIN</Label>
-                  <Input
-                    id="edit-vin"
-                    value={formData.vin}
-                    onChange={(e) => setFormData({...formData, vin: e.target.value})}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="edit-image_url">Image URL</Label>
-                  <Input
-                    id="edit-image_url"
-                    type="url"
-                    value={formData.image_url}
-                    onChange={(e) => setFormData({...formData, image_url: e.target.value})}
-                  />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button type="submit">Update Car</Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
-
-        {cars.length === 0 && !loading && (
-          <div className="text-center py-12">
-            <Car className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-600 mb-2">No cars found</h3>
-            <p className="text-gray-500 mb-4">Start by adding cars individually or import from CSV.</p>
-            <div className="flex justify-center gap-4">
-              <Button onClick={() => setShowAddDialog(true)}>
-                <Plus className="w-4 h-4 mr-2" />
-                Add First Car
-              </Button>
-              <Button variant="outline" onClick={() => setShowCSVDialog(true)}>
-                <Upload className="w-4 h-4 mr-2" />
-                Import CSV
-              </Button>
+              )}
             </div>
-          </div>
-        )}
+          </TabsContent>
+
+          {/* User Management Tab (Admin only) */}
+          {user.role === 'admin' && (
+            <TabsContent value="users">
+              <UserManagement token={authToken} />
+            </TabsContent>
+          )}
+        </Tabs>
       </div>
       
       <Toaster />
