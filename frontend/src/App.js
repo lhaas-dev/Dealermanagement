@@ -629,6 +629,18 @@ function App() {
                   </form>
                 </DialogContent>
               </Dialog>
+
+              {/* Delete All Button (Admin only) */}
+              {user.role === 'admin' && cars.length > 0 && (
+                <Button 
+                  variant="destructive" 
+                  onClick={deleteAllCars}
+                  className="flex items-center gap-2"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Alle löschen
+                </Button>
+              )}
             </div>
 
             {/* Rest of the cars grid and dialogs - keeping existing code */}
