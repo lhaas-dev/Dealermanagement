@@ -578,7 +578,7 @@ async def delete_car(car_id: str, current_user: User = Depends(get_current_user)
 
 
 @api_router.get("/cars/stats/summary")
-async def get_inventory_stats():
+async def get_inventory_stats(current_user: User = Depends(get_current_user)):
     """Get inventory summary statistics"""
     total_cars = await db.cars.count_documents({})
     present_cars = await db.cars.count_documents({"status": "present"})
