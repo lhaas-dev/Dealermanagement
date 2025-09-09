@@ -439,9 +439,14 @@ class CarDealershipAPITester:
         try:
             url = f"{self.base_url}/cars/import-csv"
             
+            # Prepare headers with authentication
+            headers = {}
+            if self.auth_token:
+                headers['Authorization'] = f'Bearer {self.auth_token}'
+            
             with open(csv_file_path, 'rb') as f:
                 files = {'file': ('sample_inventory.csv', f, 'text/csv')}
-                response = requests.post(url, files=files)
+                response = requests.post(url, files=files, headers=headers)
             
             self.tests_run += 1
             success = response.status_code == 200
