@@ -153,8 +153,11 @@ function App() {
   const fetchStats = async () => {
     try {
       const params = new URLSearchParams();
-      if (selectedMonth) params.append('month', selectedMonth);
-      if (selectedYear) params.append('year', selectedYear);
+      // Only add month/year filters if they are explicitly set (not null)
+      if (selectedMonth && selectedYear) {
+        params.append('month', selectedMonth);
+        params.append('year', selectedYear);
+      }
       
       const response = await axios.get(`${API}/cars/stats/summary?${params.toString()}`);
       setStats(response.data);
