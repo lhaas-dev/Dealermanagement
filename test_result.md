@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: Complete the frontend implementation of the monthly archiving feature, specifically the History component to display archived vehicles and integrate the "Archive Month" button in App.js.
+user_problem_statement: Test the improved CSV import functionality that handles duplicate VINs by updating existing records instead of causing errors. The system should now properly import CSV files with existing VINs without blocking errors.
 
 backend:
   - task: "Update archives endpoint to support 6 months"
