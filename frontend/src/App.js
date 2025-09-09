@@ -217,7 +217,7 @@ function App() {
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Status</SelectItem>
+              <SelectItem value="all">All Status</SelectItem>
               <SelectItem value="present">Present</SelectItem>
               <SelectItem value="absent">Absent</SelectItem>
             </SelectContent>
