@@ -19,6 +19,13 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 function App() {
+  // Authentication state
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState(null);
+  const [authToken, setAuthToken] = useState(null);
+  const [currentTab, setCurrentTab] = useState('inventory');
+
+  // Existing state
   const [cars, setCars] = useState([]);
   const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(true);
@@ -44,6 +51,55 @@ function App() {
     image_url: "",
     vin: ""
   });
+
+  // Check for existing authentication on component mount
+  useEffect(() => {
+    const token = localStorage.getItem('auth_token');
+    const userData = localStorage.getItem('user_data');
+    
+    if (token && userData) {
+      try {
+        const parsedUser = JSON.parse(userData);
+        setAuthToken(token);
+        setUser(parsedUser);
+        setIsAuthenticated(true);
+        
+        // Set default axios header
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+        handleLogout();
+      }
+    } else {
+      setLoading(false);
+    }
+  }, []);
+
+  // Handle login
+  const handleLogin = (loginData) => {
+    setAuthToken(loginData.access_token);
+    setUser(loginData.user);
+    setIsAuthenticated(true);
+    
+    // Set axios default header
+    axios.defaults.headers.common['Authorization'] = `Bearer ${loginData.access_token}`;
+  };
+
+  // Handle logout
+  const handleLogout = () => {
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('user_data');
+    delete axios.defaults.headers.common['Authorization'];
+    setAuthToken(null);
+    setUser(null);
+    setIsAuthenticated(false);
+    setCurrentTab('inventory');
+  };
+
+  // Show login screen if not authenticated
+  if (!isAuthenticated) {
+    return <Login onLogin={handleLogin} />;
+  }
 
   // Fetch cars from API
   const fetchCars = async () => {
