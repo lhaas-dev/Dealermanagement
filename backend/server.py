@@ -128,25 +128,40 @@ async def import_cars_from_csv(file: UploadFile = File(...)):
     
     try:
         content = await file.read()
-        # Remove BOM if present (common in Excel-generated CSV files)
-        if content.startswith(b'\xef\xbb\xbf'):
-            content = content[3:]
         
-        csv_data = content.decode('utf-8')
+        # Handle different encodings and BOM
+        try:
+            # Try UTF-8 with BOM first
+            if content.startswith(b'\xef\xbb\xbf'):
+                csv_data = content[3:].decode('utf-8')
+            else:
+                csv_data = content.decode('utf-8')
+        except UnicodeDecodeError:
+            # Fallback to other encodings
+            try:
+                csv_data = content.decode('utf-8-sig')  # This automatically handles BOM
+            except UnicodeDecodeError:
+                csv_data = content.decode('latin-1')
         
-        # Also remove BOM from the beginning of the string if it's still there
-        if csv_data.startswith('\ufeff'):
-            csv_data = csv_data[1:]
+        # Remove any remaining BOM characters
+        csv_data = csv_data.replace('\ufeff', '')
         
         # Debug logging
         print(f"CSV file received: {file.filename}, size: {len(content)} bytes")
-        print(f"CSV content preview: {csv_data[:200]}...")
+        print(f"CSV content preview: {repr(csv_data[:100])}...")
         
         csv_reader = csv.DictReader(io.StringIO(csv_data))
         
-        # Clean field names to remove any invisible characters
+        # Clean field names to remove any invisible characters and whitespace
         if csv_reader.fieldnames:
-            cleaned_fieldnames = [field.strip().replace('\ufeff', '') for field in csv_reader.fieldnames]
+            cleaned_fieldnames = []
+            for field in csv_reader.fieldnames:
+                # Remove BOM, whitespace, and other invisible characters
+                cleaned_field = field.strip().replace('\ufeff', '').replace('\x00', '')
+                # Remove any non-printable ASCII characters except common ones
+                cleaned_field = ''.join(char for char in cleaned_field if char.isprintable() or char in '\t\n\r')
+                cleaned_fieldnames.append(cleaned_field)
+            
             csv_reader.fieldnames = cleaned_fieldnames
             print(f"CSV fieldnames after cleaning: {csv_reader.fieldnames}")
         
