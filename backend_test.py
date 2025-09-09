@@ -1537,22 +1537,347 @@ Audi,A4 Test,AUDI-TEST-003,2024-03-10,WAUZZZ8K1DA555666"""
         print("✅ CSV import and display functionality appears to be working correctly")
         return 0
 
+def run_csv_import_frontend_fix_test():
+    """Test the frontend fix for CSV import display issue as per review request"""
+    print("🔍 TESTING: Frontend Fix for CSV Import Display Issue")
+    print("=" * 60)
+    print("Testing that imported cars appear correctly when no month/year filters are set")
+    
+    tester = CarDealershipAPITester()
+    
+    # Step 1: Login as admin (username: admin, password: admin123)
+    print(f"\n🔐 STEP 1: LOGIN AS ADMIN")
+    print("-" * 40)
+    
+    success, login_response = tester.test_admin_login("admin", "admin123")
+    if not success:
+        print("❌ CRITICAL: Admin login failed - cannot proceed")
+        return 1
+    
+    print("✅ Admin login successful with admin/admin123")
+    
+    # Step 2: Get current cars count before import
+    print(f"\n📊 STEP 2: GET CURRENT CARS COUNT")
+    print("-" * 40)
+    
+    success, cars_before = tester.run_test(
+        "GET /api/cars (before import)",
+        "GET", 
+        "cars",
+        200
+    )
+    
+    if success:
+        cars_before_count = len(cars_before)
+        print(f"✅ Current cars count: {cars_before_count}")
+    else:
+        print("❌ Failed to get current cars count")
+        return 1
+    
+    # Step 3: Import a CSV with 2-3 test cars
+    print(f"\n📁 STEP 3: IMPORT CSV WITH 2-3 TEST CARS")
+    print("-" * 40)
+    
+    # Create test CSV with 3 cars
+    current_date = datetime.now()
+    test_csv_content = f"""make,model,number,purchase_date,vin
+BMW,X5 Import Test,BMW-IMP-001,2024-01-15,WBAXH7C30EP111111
+Mercedes,C-Class Import Test,MB-IMP-002,2024-02-20,WDDGF4HB1CA222222
+Audi,A4 Import Test,AUDI-IMP-003,2024-03-10,WAUZZZ8K1DA333333"""
+    
+    csv_file_path = "/app/test_frontend_fix.csv"
+    with open(csv_file_path, 'w') as f:
+        f.write(test_csv_content)
+    
+    print(f"✅ Created test CSV with 3 cars")
+    
+    # Import the CSV
+    success, import_result = tester.test_csv_import(csv_file_path)
+    if success:
+        imported_count = import_result.get('imported_count', 0)
+        updated_count = import_result.get('updated_count', 0)
+        print(f"✅ CSV Import successful: {imported_count} new, {updated_count} updated")
+    else:
+        print("❌ CSV Import failed")
+        return 1
+    
+    # Step 4: Immediately check cars count again
+    print(f"\n🔍 STEP 4: CHECK CARS COUNT AFTER IMPORT")
+    print("-" * 40)
+    
+    success, cars_after = tester.run_test(
+        "GET /api/cars (after import)",
+        "GET",
+        "cars", 
+        200
+    )
+    
+    if success:
+        cars_after_count = len(cars_after)
+        cars_added = cars_after_count - cars_before_count
+        print(f"✅ Cars count after import: {cars_after_count}")
+        print(f"📊 Cars added: {cars_added}")
+        
+        if cars_added == imported_count:
+            print(f"✅ Import count matches: {imported_count} imported, {cars_added} added")
+        else:
+            print(f"❌ Import count mismatch: {imported_count} imported, {cars_added} added")
+    else:
+        print("❌ Failed to get cars after import")
+        return 1
+    
+    # Step 5: Verify imported cars appear in response
+    print(f"\n🔍 STEP 5: VERIFY IMPORTED CARS APPEAR IN RESPONSE")
+    print("-" * 40)
+    
+    # Find the imported cars by VIN
+    imported_vins = ["WBAXH7C30EP111111", "WDDGF4HB1CA222222", "WAUZZZ8K1DA333333"]
+    found_cars = []
+    
+    for car in cars_after:
+        if car.get('vin') in imported_vins:
+            found_cars.append(car)
+    
+    print(f"✅ Found {len(found_cars)} imported cars in response:")
+    for i, car in enumerate(found_cars):
+        print(f"   {i+1}. {car.get('make')} {car.get('model')} (VIN: {car.get('vin')})")
+    
+    if len(found_cars) == len(imported_vins):
+        print(f"✅ All imported cars appear in API response")
+    else:
+        print(f"❌ Missing imported cars: expected {len(imported_vins)}, found {len(found_cars)}")
+    
+    # Step 6: Test API behavior with no month/year filters
+    print(f"\n🔍 STEP 6: TEST API WITH NO MONTH/YEAR FILTERS")
+    print("-" * 40)
+    
+    # Test 6a: GET /api/cars (no parameters) - should return all active cars
+    success, all_active_cars = tester.run_test(
+        "GET /api/cars (no parameters - should return all active)",
+        "GET",
+        "cars",
+        200
+    )
+    
+    if success:
+        print(f"✅ No filters: {len(all_active_cars)} cars returned")
+        
+        # Check if imported cars are included
+        imported_in_all = [car for car in all_active_cars if car.get('vin') in imported_vins]
+        print(f"✅ Imported cars in 'all active': {len(imported_in_all)}/{len(imported_vins)}")
+    else:
+        print("❌ Failed to get cars with no filters")
+    
+    # Test 6b: GET /api/cars?status=absent - should return all absent cars including imported ones
+    success, absent_cars = tester.run_test(
+        "GET /api/cars?status=absent (should include imported cars)",
+        "GET",
+        "cars",
+        200,
+        params={"status": "absent"}
+    )
+    
+    if success:
+        print(f"✅ Status=absent filter: {len(absent_cars)} cars returned")
+        
+        # Check if imported cars are included (they should be absent by default)
+        imported_in_absent = [car for car in absent_cars if car.get('vin') in imported_vins]
+        print(f"✅ Imported cars in 'absent': {len(imported_in_absent)}/{len(imported_vins)}")
+        
+        if len(imported_in_absent) == len(imported_vins):
+            print(f"✅ All imported cars correctly appear in absent status filter")
+        else:
+            print(f"❌ Some imported cars missing from absent status filter")
+    else:
+        print("❌ Failed to get absent cars")
+    
+    # Test 6c: GET /api/cars/stats/summary (no parameters) - should include all active cars
+    success, stats_summary = tester.run_test(
+        "GET /api/cars/stats/summary (no parameters)",
+        "GET",
+        "cars/stats/summary",
+        200
+    )
+    
+    if success:
+        total_cars = stats_summary.get('total_cars', 0)
+        absent_cars_count = stats_summary.get('absent_cars', 0)
+        print(f"✅ Stats summary: {total_cars} total cars, {absent_cars_count} absent")
+        
+        # The stats should include our imported cars
+        if total_cars >= cars_after_count:
+            print(f"✅ Stats include imported cars (total: {total_cars} >= after import: {cars_after_count})")
+        else:
+            print(f"❌ Stats may not include imported cars (total: {total_cars} < after import: {cars_after_count})")
+    else:
+        print("❌ Failed to get stats summary")
+    
+    # Step 7: Verify imported cars have correct field values
+    print(f"\n🔍 STEP 7: VERIFY IMPORTED CARS HAVE CORRECT FIELD VALUES")
+    print("-" * 40)
+    
+    all_fields_correct = True
+    
+    for car in found_cars:
+        print(f"\n🚗 Checking car: {car.get('make')} {car.get('model')}")
+        
+        # Check archive_status="active"
+        archive_status = car.get('archive_status')
+        if archive_status == 'active':
+            print(f"   ✅ archive_status: {archive_status}")
+        else:
+            print(f"   ❌ archive_status: {archive_status} (expected: active)")
+            all_fields_correct = False
+        
+        # Check status="absent"
+        status = car.get('status')
+        if status == 'absent':
+            print(f"   ✅ status: {status}")
+        else:
+            print(f"   ❌ status: {status} (expected: absent)")
+            all_fields_correct = False
+        
+        # Check current_month and current_year are set to current date
+        car_month = car.get('current_month')
+        car_year = car.get('current_year')
+        expected_month = current_date.month
+        expected_year = current_date.year
+        
+        if car_month == expected_month:
+            print(f"   ✅ current_month: {car_month}")
+        else:
+            print(f"   ❌ current_month: {car_month} (expected: {expected_month})")
+            all_fields_correct = False
+            
+        if car_year == expected_year:
+            print(f"   ✅ current_year: {car_year}")
+        else:
+            print(f"   ❌ current_year: {car_year} (expected: {expected_year})")
+            all_fields_correct = False
+        
+        # Check required fields are populated
+        required_fields = ['make', 'model', 'number', 'purchase_date']
+        for field in required_fields:
+            value = car.get(field)
+            if value:
+                print(f"   ✅ {field}: {value}")
+            else:
+                print(f"   ❌ {field}: missing or empty")
+                all_fields_correct = False
+    
+    if all_fields_correct:
+        print(f"\n✅ All imported cars have correct field values")
+    else:
+        print(f"\n❌ Some imported cars have incorrect field values")
+    
+    # Step 8: Test that API filtering still works when filters ARE provided
+    print(f"\n🔍 STEP 8: TEST API FILTERING WITH FILTERS PROVIDED")
+    print("-" * 40)
+    
+    # Test 8a: GET /api/cars?month=X&year=Y (current month/year) - should return imported cars
+    success, current_month_cars = tester.run_test(
+        f"GET /api/cars?month={current_date.month}&year={current_date.year}",
+        "GET",
+        "cars",
+        200,
+        params={"month": current_date.month, "year": current_date.year}
+    )
+    
+    if success:
+        print(f"✅ Current month/year filter: {len(current_month_cars)} cars returned")
+        
+        # Check if imported cars are included
+        imported_in_current = [car for car in current_month_cars if car.get('vin') in imported_vins]
+        print(f"✅ Imported cars in current month/year: {len(imported_in_current)}/{len(imported_vins)}")
+        
+        if len(imported_in_current) == len(imported_vins):
+            print(f"✅ All imported cars appear with current month/year filter")
+        else:
+            print(f"❌ Some imported cars missing with current month/year filter")
+    else:
+        print("❌ Failed to get cars with current month/year filter")
+    
+    # Test 8b: GET /api/cars?month=1&year=2020 (old date) - should NOT return newly imported cars
+    success, old_date_cars = tester.run_test(
+        "GET /api/cars?month=1&year=2020 (should NOT return imported cars)",
+        "GET",
+        "cars",
+        200,
+        params={"month": 1, "year": 2020}
+    )
+    
+    if success:
+        print(f"✅ Old date filter: {len(old_date_cars)} cars returned")
+        
+        # Check that imported cars are NOT included
+        imported_in_old = [car for car in old_date_cars if car.get('vin') in imported_vins]
+        print(f"✅ Imported cars in old date: {len(imported_in_old)}/{len(imported_vins)}")
+        
+        if len(imported_in_old) == 0:
+            print(f"✅ Imported cars correctly excluded from old date filter")
+        else:
+            print(f"❌ Imported cars incorrectly included in old date filter")
+    else:
+        print("❌ Failed to get cars with old date filter")
+    
+    # Step 9: Summary and cleanup
+    print(f"\n📊 STEP 9: SUMMARY")
+    print("-" * 40)
+    
+    # Clean up test file
+    try:
+        os.remove(csv_file_path)
+        print(f"✅ Cleaned up test CSV file")
+    except:
+        pass
+    
+    # Clean up imported test cars
+    print(f"🧹 Cleaning up {len(found_cars)} imported test cars...")
+    for car in found_cars:
+        if car.get('id'):
+            tester.test_delete_car(car['id'])
+    
+    # Final assessment
+    print(f"\n📋 FRONTEND FIX TEST RESULTS:")
+    print(f"   - CSV import successful: {'✅' if imported_count > 0 else '❌'}")
+    print(f"   - Imported cars appear in API: {'✅' if len(found_cars) == len(imported_vins) else '❌'}")
+    print(f"   - No filters returns all active: {'✅' if len(all_active_cars) >= cars_after_count else '❌'}")
+    print(f"   - Status=absent includes imported: {'✅' if len(imported_in_absent) == len(imported_vins) else '❌'}")
+    print(f"   - Stats include imported cars: {'✅' if total_cars >= cars_after_count else '❌'}")
+    print(f"   - Correct field values: {'✅' if all_fields_correct else '❌'}")
+    print(f"   - Current month/year filter works: {'✅' if len(imported_in_current) == len(imported_vins) else '❌'}")
+    print(f"   - Old date filter excludes imported: {'✅' if len(imported_in_old) == 0 else '❌'}")
+    
+    print(f"\n📊 Test Results: {tester.tests_passed}/{tester.tests_run} tests passed")
+    
+    # Determine if the frontend fix is working
+    critical_checks = [
+        imported_count > 0,  # CSV import works
+        len(found_cars) == len(imported_vins),  # Imported cars appear
+        len(all_active_cars) >= cars_after_count,  # No filters returns all
+        len(imported_in_absent) == len(imported_vins),  # Status filter works
+        all_fields_correct,  # Field values correct
+        len(imported_in_current) == len(imported_vins),  # Current filter works
+        len(imported_in_old) == 0  # Old filter excludes
+    ]
+    
+    if all(critical_checks):
+        print(f"\n🎉 FRONTEND FIX VERIFICATION: SUCCESS")
+        print(f"   The frontend fix for CSV import display is working correctly!")
+        return 0
+    else:
+        failed_checks = sum(1 for check in critical_checks if not check)
+        print(f"\n❌ FRONTEND FIX VERIFICATION: FAILED")
+        print(f"   {failed_checks} critical checks failed")
+        return 1
+
 def main():
-    """Main test runner - focuses on CSV import display investigation"""
-    print("🚗 Starting CSV Import Display Issue Investigation")
+    """Main test runner - focuses on frontend fix for CSV import display"""
+    print("🚗 Testing Frontend Fix for CSV Import Display Issue")
     print("=" * 60)
     
-    # Run the CSV import display investigation (main focus as per review request)
-    investigation_result = run_csv_import_display_investigation()
-    
-    if investigation_result == 0:
-        # Run additional test with existing data
-        print(f"\n\n🔄 Running Additional Test with Existing Data")
-        print("=" * 60)
-        existing_data_result = run_csv_import_with_existing_data_test()
-        return max(investigation_result, existing_data_result)
-    
-    return investigation_result
+    # Run the specific frontend fix test as requested
+    return run_csv_import_frontend_fix_test()
 
 if __name__ == "__main__":
     sys.exit(main())
