@@ -347,16 +347,10 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Update archives endpoint to support 6 months"
-    - "Monthly archive creation endpoint"
-    - "Archive detail retrieval endpoint"
-    - "Create History component"
-    - "Integrate History tab in App.js"
-    - "Archive Month button integration"
-    - "Delete single archive functionality"
-    - "Delete all archives functionality"
+    - "CSV import with duplicate VIN handling"
+    - "CSVImportResult model enhancement"
   stuck_tasks: []
-  test_all: true
+  test_all: false
   test_priority: "high_first"
 
 agent_communication:
