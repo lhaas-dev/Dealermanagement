@@ -209,6 +209,7 @@ class StatusUpdate(BaseModel):
 class CSVImportResult(BaseModel):
     success: bool
     imported_count: int
+    updated_count: int = 0
     errors: List[str] = []
     message: str
 
