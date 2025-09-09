@@ -364,8 +364,8 @@ function App() {
     setFormData({
       make: car.make,
       model: car.model,
-      year: car.year.toString(),
-      price: car.price.toString(),
+      number: car.number,
+      purchase_date: car.purchase_date || "",
       image_url: car.image_url || "",
       vin: car.vin || ""
     });
