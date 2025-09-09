@@ -1087,6 +1087,168 @@ def run_monthly_archiving_tests():
         print(f"\n❌ {failed_tests} tests failed or critical checks failed")
         return 1
 
+def run_csv_import_with_existing_data_test():
+    """Test CSV import when there's existing data to simulate real-world scenario"""
+    print("🔍 FOLLOW-UP: CSV Import with Existing Data Test")
+    print("=" * 60)
+    
+    tester = CarDealershipAPITester()
+    
+    # Login as admin
+    success, _ = tester.test_admin_login("admin", "admin123")
+    if not success:
+        print("❌ CRITICAL: Admin login failed")
+        return 1
+    
+    # Step 1: Create some existing cars first
+    print(f"\n📝 STEP 1: CREATE EXISTING CARS")
+    print("-" * 40)
+    
+    existing_cars = [
+        {
+            "make": "Toyota",
+            "model": "Camry",
+            "number": "TOY001",
+            "purchase_date": "2024-01-15",
+            "vin": "1HGBH41JXMN109186"
+        },
+        {
+            "make": "Honda", 
+            "model": "Civic",
+            "number": "HON002",
+            "purchase_date": "2024-02-20",
+            "vin": "2HGFC2F59NH123456"
+        }
+    ]
+    
+    existing_car_ids = []
+    for car_data in existing_cars:
+        success, response = tester.run_test(
+            f"Create Existing Car ({car_data['make']} {car_data['model']})",
+            "POST",
+            "cars",
+            200,
+            data=car_data
+        )
+        if success and 'id' in response:
+            existing_car_ids.append(response['id'])
+    
+    print(f"✅ Created {len(existing_car_ids)} existing cars")
+    
+    # Step 2: Check cars before CSV import
+    success, cars_before = tester.run_test("Get All Cars (Before CSV Import)", "GET", "cars", 200)
+    print(f"✅ Found {len(cars_before)} cars before CSV import")
+    
+    # Step 3: Import CSV with new cars
+    print(f"\n📁 STEP 2: IMPORT CSV WITH NEW CARS")
+    print("-" * 40)
+    
+    csv_content = """make,model,number,purchase_date,vin
+Volkswagen,Golf,VW-001,2024-03-15,WVWZZZ1JZ3W123456
+Ford,Focus,FORD-002,2024-04-20,1FADP3F20EL123789
+Nissan,Altima,NIS-003,2024-05-10,1N4AL3AP0EC123456"""
+    
+    csv_file_path = "/app/test_import_with_existing.csv"
+    with open(csv_file_path, 'w') as f:
+        f.write(csv_content)
+    
+    success, import_result = tester.test_csv_import(csv_file_path)
+    if success:
+        print(f"✅ CSV Import successful: {import_result}")
+    else:
+        print("❌ CSV Import failed")
+        return 1
+    
+    # Step 4: Check cars after import
+    success, cars_after = tester.run_test("Get All Cars (After CSV Import)", "GET", "cars", 200)
+    print(f"✅ Found {len(cars_after)} cars after CSV import")
+    print(f"📊 Change: {len(cars_after) - len(cars_before)} cars added")
+    
+    # Step 5: Test duplicate VIN handling
+    print(f"\n🔄 STEP 3: TEST DUPLICATE VIN HANDLING")
+    print("-" * 40)
+    
+    # Import CSV with duplicate VIN (should update existing car)
+    duplicate_csv_content = """make,model,number,purchase_date,vin
+Toyota,Camry Updated,TOY001-UPD,2024-06-15,1HGBH41JXMN109186
+BMW,X5,BMW-004,2024-07-20,WBAFR7C50BC789123"""
+    
+    duplicate_csv_file = "/app/test_duplicate_import.csv"
+    with open(duplicate_csv_file, 'w') as f:
+        f.write(duplicate_csv_content)
+    
+    success, duplicate_result = tester.test_csv_import(duplicate_csv_file)
+    if success:
+        print(f"✅ Duplicate VIN Import successful: {duplicate_result}")
+        imported_count = duplicate_result.get('imported_count', 0)
+        updated_count = duplicate_result.get('updated_count', 0)
+        print(f"📊 Result: {imported_count} new cars, {updated_count} updated cars")
+    else:
+        print("❌ Duplicate VIN Import failed")
+    
+    # Step 6: Verify the update worked
+    success, updated_cars = tester.run_test("Get All Cars (After Duplicate Import)", "GET", "cars", 200)
+    if success:
+        # Find the Toyota Camry to see if it was updated
+        toyota_car = next((car for car in updated_cars if car.get('vin') == '1HGBH41JXMN109186'), None)
+        if toyota_car:
+            print(f"✅ Found updated Toyota: {toyota_car.get('make')} {toyota_car.get('model')}")
+            if toyota_car.get('model') == 'Camry Updated':
+                print(f"✅ Car was successfully updated via CSV import")
+            else:
+                print(f"❌ Car was not updated - still shows: {toyota_car.get('model')}")
+        else:
+            print(f"❌ Could not find Toyota with VIN 1HGBH41JXMN109186")
+    
+    # Step 7: Test frontend-like queries
+    print(f"\n🖥️ STEP 4: TEST FRONTEND-LIKE QUERIES")
+    print("-" * 40)
+    
+    current_date = datetime.now()
+    
+    # Test queries that frontend might use
+    test_queries = [
+        ("All active cars", {"archive_status": "active"}),
+        ("Current month cars", {"month": current_date.month, "year": current_date.year}),
+        ("Absent cars", {"status": "absent"}),
+        ("Search 'BMW'", {"search": "BMW"}),
+        ("Search 'Toyota'", {"search": "Toyota"}),
+    ]
+    
+    for query_name, params in test_queries:
+        success, results = tester.run_test(
+            f"Frontend Query: {query_name}",
+            "GET",
+            "cars",
+            200,
+            params=params
+        )
+        if success:
+            print(f"   ✅ {query_name}: {len(results)} cars found")
+            # Show first few results
+            for i, car in enumerate(results[:3]):
+                print(f"      {i+1}. {car.get('make')} {car.get('model')} - Status: {car.get('status')}")
+        else:
+            print(f"   ❌ {query_name}: Query failed")
+    
+    # Clean up
+    try:
+        os.remove(csv_file_path)
+        os.remove(duplicate_csv_file)
+    except:
+        pass
+    
+    # Clean up all created cars
+    success, all_cars = tester.run_test("Get All Cars for Cleanup", "GET", "cars", 200)
+    if success:
+        print(f"\n🧹 Cleaning up {len(all_cars)} cars...")
+        for car in all_cars:
+            if car.get('id'):
+                tester.test_delete_car(car['id'])
+    
+    print(f"\n📊 Test Results: {tester.tests_passed}/{tester.tests_run} tests passed")
+    return 0 if tester.tests_passed == tester.tests_run else 1
+
 def run_csv_import_display_investigation():
     """Investigate CSV import display issue - imported cars not appearing in frontend"""
     print("🔍 URGENT: CSV Import Display Issue Investigation")
