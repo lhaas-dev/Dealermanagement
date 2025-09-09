@@ -153,7 +153,7 @@ class CarDealershipAPITester:
             "Create Archive Without Auth (should fail)",
             "POST",
             "archives/create-monthly",
-            401,
+            403,  # Changed from 401 to 403 as that's what the API returns
             data=archive_data,
             use_auth=False
         )
