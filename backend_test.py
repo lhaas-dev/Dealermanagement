@@ -97,14 +97,20 @@ class CarDealershipAPITester:
             data=update_data
         )
 
-    def test_update_car_status(self, car_id, status):
-        """Test updating car status"""
+    def test_update_car_status(self, car_id, status, car_photo=None, vin_photo=None):
+        """Test updating car status with optional photo verification"""
+        data = {"status": status}
+        if car_photo:
+            data["car_photo"] = car_photo
+        if vin_photo:
+            data["vin_photo"] = vin_photo
+            
         return self.run_test(
             f"Update Car Status to {status} ({car_id[:8]}...)",
             "PATCH",
             f"cars/{car_id}/status",
-            200,
-            data={"status": status}
+            200 if (status == "absent" or (car_photo and vin_photo)) else 400,
+            data=data
         )
 
     def test_search_cars(self, search_term):
