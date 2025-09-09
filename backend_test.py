@@ -1537,6 +1537,335 @@ Audi,A4 Test,AUDI-TEST-003,2024-03-10,WAUZZZ8K1DA555666"""
         print("✅ CSV import and display functionality appears to be working correctly")
         return 0
 
+def run_csv_import_update_issue_investigation():
+    """URGENT: Debug CSV import issue where vehicles are being 'updated' but not appearing in frontend"""
+    print("🚨 URGENT: CSV Import Update Issue Investigation")
+    print("=" * 60)
+    print("Issue: Toast shows '36 Fahrzeuge verarbeitet: 0 neu importiert, 36 aktualisiert'")
+    print("But system shows 'Gesamt Fahrzeuge: 0' - updated vehicles not appearing in GET /api/cars")
+    
+    tester = CarDealershipAPITester()
+    
+    # Step 1: Login as admin (username: admin, password: admin123)
+    print(f"\n🔐 STEP 1: LOGIN AS ADMIN")
+    print("-" * 40)
+    
+    success, login_response = tester.test_admin_login("admin", "admin123")
+    if not success:
+        print("❌ CRITICAL: Admin login failed - cannot proceed")
+        return 1
+    
+    print("✅ Admin login successful with admin/admin123")
+    
+    # Step 2: Check existing cars with detailed information
+    print(f"\n📊 STEP 2: CHECK EXISTING CARS WITH DETAILED INFORMATION")
+    print("-" * 40)
+    
+    success, existing_cars = tester.run_test(
+        "GET /api/cars (no filters) - check all existing cars",
+        "GET", 
+        "cars",
+        200
+    )
+    
+    if success:
+        print(f"✅ Found {len(existing_cars)} existing cars")
+        print("📋 Detailed analysis of existing cars:")
+        
+        # Analyze archive_status distribution
+        active_cars = [car for car in existing_cars if car.get('archive_status') == 'active']
+        archived_cars = [car for car in existing_cars if car.get('archive_status') == 'archived']
+        
+        print(f"   - Active cars: {len(active_cars)}")
+        print(f"   - Archived cars: {len(archived_cars)}")
+        
+        # Show sample of existing cars with all relevant fields
+        print(f"\n📋 Sample existing cars (first 5):")
+        for i, car in enumerate(existing_cars[:5]):
+            print(f"   {i+1}. {car.get('make', 'N/A')} {car.get('model', 'N/A')} (VIN: {car.get('vin', 'N/A')})")
+            print(f"      Archive Status: {car.get('archive_status', 'N/A')}")
+            print(f"      Status: {car.get('status', 'N/A')}")
+            print(f"      Month/Year: {car.get('current_month', 'N/A')}/{car.get('current_year', 'N/A')}")
+            print(f"      Created: {car.get('created_at', 'N/A')}")
+            print(f"      Updated: {car.get('updated_at', 'N/A')}")
+    else:
+        print("❌ Failed to get existing cars")
+        return 1
+    
+    # Step 3: Create cars with existing VINs to simulate the update scenario
+    print(f"\n📝 STEP 3: CREATE CARS WITH EXISTING VINS TO SIMULATE UPDATE SCENARIO")
+    print("-" * 40)
+    
+    # Create some cars first that will be "updated" by CSV import
+    existing_test_cars = [
+        {
+            "make": "BMW",
+            "model": "X5 Original",
+            "number": "BMW-ORIG-001",
+            "purchase_date": "2024-01-15",
+            "vin": "WBAXH7C30EP999001"
+        },
+        {
+            "make": "Mercedes",
+            "model": "C200 Original", 
+            "number": "MB-ORIG-002",
+            "purchase_date": "2024-02-20",
+            "vin": "WDDGF4HB1CA999002"
+        },
+        {
+            "make": "Audi",
+            "model": "A4 Original",
+            "number": "AUDI-ORIG-003", 
+            "purchase_date": "2024-03-10",
+            "vin": "WAUZZZ8K1DA999003"
+        }
+    ]
+    
+    created_car_ids = []
+    created_vins = []
+    
+    for car_data in existing_test_cars:
+        success, response = tester.run_test(
+            f"Create Car for Update Test ({car_data['make']} {car_data['model']})",
+            "POST",
+            "cars",
+            200,
+            data=car_data
+        )
+        if success and 'id' in response:
+            created_car_ids.append(response['id'])
+            created_vins.append(car_data['vin'])
+            print(f"✅ Created car: {car_data['make']} {car_data['model']} (VIN: {car_data['vin']})")
+    
+    if not created_car_ids:
+        print("❌ CRITICAL: Failed to create test cars for update scenario")
+        return 1
+    
+    print(f"✅ Created {len(created_car_ids)} cars for update testing")
+    
+    # Step 4: Verify cars exist and get their details before update
+    print(f"\n🔍 STEP 4: VERIFY CARS EXIST BEFORE UPDATE")
+    print("-" * 40)
+    
+    cars_before_update = []
+    for car_id in created_car_ids:
+        success, car_data = tester.run_test(
+            f"Get Car Before Update ({car_id[:8]}...)",
+            "GET",
+            f"cars/{car_id}",
+            200
+        )
+        if success:
+            cars_before_update.append(car_data)
+            print(f"✅ Car exists: {car_data.get('make')} {car_data.get('model')}")
+            print(f"   Archive Status: {car_data.get('archive_status')}")
+            print(f"   Status: {car_data.get('status')}")
+            print(f"   Month/Year: {car_data.get('current_month')}/{car_data.get('current_year')}")
+    
+    # Step 5: Create CSV with same VINs to trigger updates
+    print(f"\n📁 STEP 5: CREATE CSV WITH SAME VINS TO TRIGGER UPDATES")
+    print("-" * 40)
+    
+    # Create CSV with same VINs but updated information
+    update_csv_content = f"""make,model,number,purchase_date,vin
+BMW,X5 Updated,BMW-UPD-001,2024-06-15,WBAXH7C30EP999001
+Mercedes,C200 Updated,MB-UPD-002,2024-07-20,WDDGF4HB1CA999002
+Audi,A4 Updated,AUDI-UPD-003,2024-08-10,WAUZZZ8K1DA999003"""
+    
+    csv_file_path = "/app/test_update_issue.csv"
+    with open(csv_file_path, 'w') as f:
+        f.write(update_csv_content)
+    
+    print(f"✅ Created CSV with 3 cars using existing VINs for update testing")
+    
+    # Step 6: Import CSV and check the update behavior
+    print(f"\n📥 STEP 6: IMPORT CSV AND CHECK UPDATE BEHAVIOR")
+    print("-" * 40)
+    
+    success, import_result = tester.test_csv_import(csv_file_path)
+    if success:
+        imported_count = import_result.get('imported_count', 0)
+        updated_count = import_result.get('updated_count', 0)
+        print(f"✅ CSV Import result: {imported_count} new, {updated_count} updated")
+        print(f"📋 Full import result: {import_result}")
+        
+        # This should show 0 imported, 3 updated (matching the user's issue)
+        if imported_count == 0 and updated_count == 3:
+            print(f"✅ Reproduced the issue: 0 imported, {updated_count} updated")
+        else:
+            print(f"⚠️  Different result than expected issue")
+    else:
+        print("❌ CSV Import failed")
+        return 1
+    
+    # Step 7: Check cars immediately after update
+    print(f"\n🔍 STEP 7: CHECK CARS IMMEDIATELY AFTER UPDATE")
+    print("-" * 40)
+    
+    success, cars_after_update = tester.run_test(
+        "GET /api/cars (after update)",
+        "GET",
+        "cars",
+        200
+    )
+    
+    if success:
+        print(f"✅ Found {len(cars_after_update)} cars after update")
+        
+        # Find the updated cars by VIN
+        updated_cars = [car for car in cars_after_update if car.get('vin') in created_vins]
+        print(f"✅ Found {len(updated_cars)} updated cars in response")
+        
+        if len(updated_cars) == 0:
+            print(f"❌ CRITICAL: Updated cars are NOT appearing in GET /api/cars response!")
+            print(f"   This reproduces the user's issue!")
+        else:
+            print(f"✅ Updated cars are appearing in response")
+            
+        # Analyze each updated car
+        print(f"\n📋 Analysis of updated cars:")
+        for car in updated_cars:
+            print(f"   🚗 {car.get('make')} {car.get('model')} (VIN: {car.get('vin')})")
+            print(f"      Archive Status: {car.get('archive_status')} (should be 'active')")
+            print(f"      Status: {car.get('status')} (should be 'absent')")
+            print(f"      Month/Year: {car.get('current_month')}/{car.get('current_year')}")
+            print(f"      Updated At: {car.get('updated_at')}")
+            
+            # Check if any fields are wrong
+            current_date = datetime.now()
+            issues = []
+            if car.get('archive_status') != 'active':
+                issues.append(f"archive_status is '{car.get('archive_status')}' instead of 'active'")
+            if car.get('current_month') != current_date.month:
+                issues.append(f"current_month is {car.get('current_month')} instead of {current_date.month}")
+            if car.get('current_year') != current_date.year:
+                issues.append(f"current_year is {car.get('current_year')} instead of {current_date.year}")
+            
+            if issues:
+                print(f"      ❌ ISSUES FOUND: {', '.join(issues)}")
+            else:
+                print(f"      ✅ All fields look correct")
+    else:
+        print("❌ Failed to get cars after update")
+        return 1
+    
+    # Step 8: Test specific query filters to find where cars might be hiding
+    print(f"\n🔍 STEP 8: TEST QUERY FILTERS TO FIND HIDDEN CARS")
+    print("-" * 40)
+    
+    current_date = datetime.now()
+    
+    # Test different filter combinations
+    filter_tests = [
+        ("No filters", {}),
+        ("Archive status active", {"archive_status": "active"}),
+        ("Archive status archived", {"archive_status": "archived"}),
+        ("Status absent", {"status": "absent"}),
+        ("Status present", {"status": "present"}),
+        ("Current month/year", {"month": current_date.month, "year": current_date.year}),
+        ("Search BMW", {"search": "BMW"}),
+        ("Search Updated", {"search": "Updated"}),
+    ]
+    
+    for filter_name, params in filter_tests:
+        success, filtered_cars = tester.run_test(
+            f"GET /api/cars with filter: {filter_name}",
+            "GET",
+            "cars",
+            200,
+            params=params
+        )
+        
+        if success:
+            # Count how many of our updated cars appear in this filter
+            our_cars_in_filter = [car for car in filtered_cars if car.get('vin') in created_vins]
+            print(f"   ✅ {filter_name}: {len(filtered_cars)} total cars, {len(our_cars_in_filter)} of our updated cars")
+            
+            if len(our_cars_in_filter) > 0:
+                print(f"      📋 Our cars found with this filter:")
+                for car in our_cars_in_filter:
+                    print(f"         - {car.get('make')} {car.get('model')} (archive: {car.get('archive_status')}, status: {car.get('status')})")
+        else:
+            print(f"   ❌ {filter_name}: Query failed")
+    
+    # Step 9: Check the update function specifically
+    print(f"\n🔍 STEP 9: INVESTIGATE UPDATE FUNCTION BEHAVIOR")
+    print("-" * 40)
+    
+    # Get individual cars by ID to see if they still exist
+    print(f"📋 Checking individual updated cars by ID:")
+    for i, car_id in enumerate(created_car_ids):
+        success, car_data = tester.run_test(
+            f"Get Updated Car by ID ({car_id[:8]}...)",
+            "GET",
+            f"cars/{car_id}",
+            200
+        )
+        
+        if success:
+            print(f"   ✅ Car {i+1} exists: {car_data.get('make')} {car_data.get('model')}")
+            print(f"      Archive Status: {car_data.get('archive_status')}")
+            print(f"      Status: {car_data.get('status')}")
+            print(f"      Month/Year: {car_data.get('current_month')}/{car_data.get('current_year')}")
+            
+            # Compare with before update
+            if i < len(cars_before_update):
+                before = cars_before_update[i]
+                print(f"      Model changed: {before.get('model')} → {car_data.get('model')}")
+                print(f"      Updated timestamp: {car_data.get('updated_at')}")
+        else:
+            print(f"   ❌ Car {i+1} not found by ID")
+    
+    # Step 10: Summary and diagnosis
+    print(f"\n📊 STEP 10: SUMMARY AND DIAGNOSIS")
+    print("-" * 40)
+    
+    print(f"🔍 Investigation Summary:")
+    print(f"   - Created {len(created_car_ids)} cars for testing")
+    print(f"   - CSV import reported: {imported_count} new, {updated_count} updated")
+    print(f"   - Cars found after update: {len(updated_cars) if 'updated_cars' in locals() else 0}")
+    
+    # Determine the root cause
+    if len(updated_cars) == 0:
+        print(f"\n❌ ROOT CAUSE IDENTIFIED:")
+        print(f"   Updated cars are NOT appearing in GET /api/cars response")
+        print(f"   This confirms the user's issue: cars are updated but don't appear in frontend")
+        
+        # Check if it's a filtering issue
+        print(f"\n🔍 Potential causes:")
+        print(f"   1. Updated cars might have wrong archive_status (not 'active')")
+        print(f"   2. Updated cars might have wrong current_month/current_year")
+        print(f"   3. Update logic might be setting fields incorrectly")
+        print(f"   4. Frontend query might be using filters that exclude updated cars")
+        
+        diagnosis_result = "ISSUE_CONFIRMED"
+    else:
+        print(f"\n✅ Updated cars are appearing correctly")
+        print(f"   The issue might be frontend-specific or related to specific data")
+        diagnosis_result = "ISSUE_NOT_REPRODUCED"
+    
+    # Clean up
+    try:
+        os.remove(csv_file_path)
+        print(f"\n🧹 Cleaned up test CSV file")
+    except:
+        pass
+    
+    # Clean up created cars
+    print(f"\n🧹 Cleaning up {len(created_car_ids)} test cars...")
+    for car_id in created_car_ids:
+        tester.test_delete_car(car_id)
+    
+    print("\n" + "=" * 60)
+    print(f"📊 Investigation Results: {tester.tests_passed}/{tester.tests_run} tests passed")
+    
+    if diagnosis_result == "ISSUE_CONFIRMED":
+        print(f"❌ CRITICAL ISSUE CONFIRMED: Updated cars not appearing in GET /api/cars")
+        return 1
+    else:
+        print(f"✅ Issue not reproduced - may be data-specific or frontend-related")
+        return 0
+
 def run_csv_import_frontend_fix_test():
     """Test the frontend fix for CSV import display issue as per review request"""
     print("🔍 TESTING: Frontend Fix for CSV Import Display Issue")
