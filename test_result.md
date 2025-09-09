@@ -323,9 +323,6 @@ test_plan:
     - "Create History component"
     - "Integrate History tab in App.js"
     - "Archive Month button integration"
-    - "Automatic 6-month archive cleanup"
-    - "Delete single archive endpoint"
-    - "Delete all archives endpoint"
     - "Delete single archive functionality"
     - "Delete all archives functionality"
   stuck_tasks: []
