@@ -1545,6 +1545,13 @@ def main():
     # Run the CSV import display investigation (main focus as per review request)
     investigation_result = run_csv_import_display_investigation()
     
+    if investigation_result == 0:
+        # Run additional test with existing data
+        print(f"\n\n🔄 Running Additional Test with Existing Data")
+        print("=" * 60)
+        existing_data_result = run_csv_import_with_existing_data_test()
+        return max(investigation_result, existing_data_result)
+    
     return investigation_result
 
 if __name__ == "__main__":
