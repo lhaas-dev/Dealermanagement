@@ -315,15 +315,29 @@ const History = ({ user, authToken }) => {
                   </div>
 
                   {/* View Details Button */}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => viewArchiveDetails(archive)}
-                    className="w-full flex items-center gap-2"
-                  >
-                    <Eye className="w-4 h-4" />
-                    Details anzeigen
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => viewArchiveDetails(archive)}
+                      className="flex-1 flex items-center gap-2"
+                    >
+                      <Eye className="w-4 h-4" />
+                      Details anzeigen
+                    </Button>
+                    
+                    {/* Delete Button (Admin only) */}
+                    {user.role === 'admin' && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openDeleteDialog(archive)}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
