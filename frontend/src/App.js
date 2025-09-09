@@ -111,41 +111,92 @@ function App() {
 
   // Handle CSV upload
   const handleCSVUpload = async () => {
+    console.log('CSV Upload started, csvFile:', csvFile);
+    
     if (!csvFile) {
       toast.error('Please select a CSV file');
       return;
     }
 
+    // Validate file type
+    if (!csvFile.name.toLowerCase().endsWith('.csv')) {
+      toast.error('Please select a valid CSV file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (csvFile.size > 5 * 1024 * 1024) {
+      toast.error('File size must be less than 5MB');
+      return;
+    }
+
     setUploading(true);
+    
     try {
+      console.log('Creating FormData...');
       const formData = new FormData();
       formData.append('file', csvFile);
 
-      console.log('Uploading CSV file:', csvFile.name, 'Size:', csvFile.size);
+      console.log('Uploading CSV file:', csvFile.name, 'Size:', csvFile.size, 'Type:', csvFile.type);
+      console.log('API endpoint:', `${API}/cars/import-csv`);
       
       const response = await axios.post(`${API}/cars/import-csv`, formData, {
         headers: {
-          // Remove Content-Type header to let axios set it automatically for multipart/form-data
+          // Let axios set Content-Type automatically for multipart/form-data
         },
+        timeout: 30000, // 30 second timeout
       });
 
-      console.log('CSV upload response:', response.data);
+      console.log('CSV upload response status:', response.status);
+      console.log('CSV upload response data:', response.data);
 
       const result = response.data;
-      toast.success(`Successfully imported ${result.imported_count} cars`);
       
-      if (result.errors && result.errors.length > 0) {
-        console.warn('Import errors:', result.errors);
-        toast.warning(`${result.errors.length} rows had errors - check console for details`);
+      if (result.success) {
+        toast.success(`Successfully imported ${result.imported_count} cars`);
+        
+        if (result.errors && result.errors.length > 0) {
+          console.warn('Import errors:', result.errors);
+          toast.warning(`${result.errors.length} rows had errors - check console for details`);
+          // Show first few errors in console
+          result.errors.forEach((error, index) => {
+            if (index < 3) console.error(`Import Error ${index + 1}:`, error);
+          });
+        }
+      } else {
+        toast.error('Import failed: ' + (result.message || 'Unknown error'));
       }
 
       setShowCSVDialog(false);
       setCsvFile(null);
+      
+      console.log('Refreshing car list and stats...');
       await Promise.all([fetchCars(), fetchStats()]);
+      console.log('Refresh completed');
+      
     } catch (error) {
-      console.error('Error uploading CSV:', error);
-      console.error('Error response:', error.response?.data);
-      toast.error('Failed to upload CSV file: ' + (error.response?.data?.detail || error.message));
+      console.error('CSV upload error:', error);
+      console.error('Error details:', {
+        message: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        headers: error.response?.headers
+      });
+      
+      let errorMessage = 'Failed to upload CSV file';
+      
+      if (error.response?.status === 400) {
+        errorMessage = error.response.data?.detail || 'Invalid CSV format or data';
+      } else if (error.response?.status === 500) {
+        errorMessage = 'Server error processing CSV';
+      } else if (error.code === 'ECONNABORTED') {
+        errorMessage = 'Upload timeout - file may be too large';
+      } else if (error.message) {
+        errorMessage += ': ' + error.message;
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setUploading(false);
     }
