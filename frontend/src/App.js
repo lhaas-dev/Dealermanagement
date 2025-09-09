@@ -344,9 +344,30 @@ function App() {
     }
   };
 
-  // Handle car deletion
-  const deleteCar = async (carId) => {
-    if (!window.confirm('Are you sure you want to delete this car?')) return;
+  // Handle delete all cars (admin only)
+  const deleteAllCars = async () => {
+    const confirmed = window.confirm(
+      '⚠️ ACHTUNG: Möchten Sie wirklich ALLE Fahrzeuge löschen?\n\nDiese Aktion kann nicht rückgängig gemacht werden!\n\nTippen Sie "ALLE LÖSCHEN" zur Bestätigung:'
+    );
+    
+    if (!confirmed) return;
+    
+    const confirmation = prompt('Zur Bestätigung tippen Sie: ALLE LÖSCHEN');
+    if (confirmation !== 'ALLE LÖSCHEN') {
+      toast.error('Löschung abgebrochen - falsche Bestätigung');
+      return;
+    }
+
+    try {
+      const response = await axios.delete(`${API}/cars`);
+      const result = response.data;
+      toast.success(`Alle ${result.deleted_count} Fahrzeuge wurden gelöscht`);
+      await Promise.all([fetchCars(), fetchStats()]);
+    } catch (error) {
+      console.error('Error deleting all cars:', error);
+      toast.error('Fehler beim Löschen aller Fahrzeuge: ' + (error.response?.data?.detail || error.message));
+    }
+  };
     
     try {
       await axios.delete(`${API}/cars/${carId}`);
