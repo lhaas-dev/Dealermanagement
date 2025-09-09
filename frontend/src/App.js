@@ -231,28 +231,14 @@ function App() {
 
   // Handle car deletion
   const deleteCar = async (carId) => {
-    console.log('Delete button clicked for car ID:', carId);
-    
-    const confirmed = window.confirm('Are you sure you want to delete this car?');
-    console.log('User confirmed deletion:', confirmed);
-    
-    if (!confirmed) {
-      console.log('User cancelled deletion');
-      return;
-    }
+    if (!window.confirm('Are you sure you want to delete this car?')) return;
     
     try {
-      console.log('Attempting to delete car with API call...');
-      const response = await axios.delete(`${API}/cars/${carId}`);
-      console.log('Delete API response:', response);
-      
+      await axios.delete(`${API}/cars/${carId}`);
       toast.success('Car deleted successfully');
-      console.log('Refreshing car list and stats...');
       await Promise.all([fetchCars(), fetchStats()]);
-      console.log('Car list and stats refreshed');
     } catch (error) {
       console.error('Error deleting car:', error);
-      console.error('Error details:', error.response?.data);
       toast.error('Failed to delete car: ' + (error.response?.data?.detail || error.message));
     }
   };
