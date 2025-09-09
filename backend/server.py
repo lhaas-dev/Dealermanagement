@@ -531,7 +531,7 @@ async def update_car(car_id: str, car_update: CarUpdate, current_user: User = De
 
 
 @api_router.patch("/cars/{car_id}/status", response_model=Car)
-async def update_car_status(car_id: str, status_update: StatusUpdate):
+async def update_car_status(car_id: str, status_update: StatusUpdate, current_user: User = Depends(get_current_user)):
     """Update a car's presence status with photo verification"""
     car = await db.cars.find_one({"id": car_id})
     if not car:
