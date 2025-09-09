@@ -273,6 +273,16 @@ class CarDealershipAPITester:
             data={"status": "absent"}
         )
 
+    def test_nonexistent_car(self):
+        """Test getting a non-existent car"""
+        fake_id = "nonexistent-car-id"
+        return self.run_test(
+            "Get Non-existent Car (should fail)",
+            "GET",
+            f"cars/{fake_id}",
+            404
+        )
+
     def cleanup(self):
         """Clean up created test data"""
         print(f"\n🧹 Cleaning up {len(self.created_car_ids)} test cars...")
