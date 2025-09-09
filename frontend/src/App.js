@@ -130,6 +130,8 @@ function App() {
       const params = new URLSearchParams();
       if (searchTerm) params.append('search', searchTerm);
       if (statusFilter && statusFilter !== 'all') params.append('status', statusFilter);
+      if (selectedMonth) params.append('month', selectedMonth);
+      if (selectedYear) params.append('year', selectedYear);
       
       const response = await axios.get(`${API}/cars?${params.toString()}`);
       setCars(response.data);
@@ -142,10 +144,35 @@ function App() {
   // Fetch inventory stats
   const fetchStats = async () => {
     try {
-      const response = await axios.get(`${API}/cars/stats/summary`);
+      const params = new URLSearchParams();
+      if (selectedMonth) params.append('month', selectedMonth);
+      if (selectedYear) params.append('year', selectedYear);
+      
+      const response = await axios.get(`${API}/cars/stats/summary?${params.toString()}`);
       setStats(response.data);
     } catch (error) {
       console.error('Error fetching stats:', error);
+    }
+  };
+
+  // Fetch available months
+  const fetchAvailableMonths = async () => {
+    try {
+      const response = await axios.get(`${API}/cars/available-months`);
+      setAvailableMonths(response.data);
+    } catch (error) {
+      console.error('Error fetching available months:', error);
+    }
+  };
+
+  // Fetch archives
+  const fetchArchives = async () => {
+    try {
+      const response = await axios.get(`${API}/archives`);
+      setArchives(response.data);
+    } catch (error) {
+      console.error('Error fetching archives:', error);
+      toast.error('Failed to fetch archives');
     }
   };
 
