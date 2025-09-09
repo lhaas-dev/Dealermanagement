@@ -70,10 +70,21 @@ function App() {
         console.error('Error parsing user data:', error);
         handleLogout();
       }
-    } else {
-      setLoading(false);
     }
+    setLoading(false);
   }, []);
+
+  // Initialize data when authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      const loadData = async () => {
+        setLoading(true);
+        await Promise.all([fetchCars(), fetchStats()]);
+        setLoading(false);
+      };
+      loadData();
+    }
+  }, [isAuthenticated, searchTerm, statusFilter]);
 
   // Handle login
   const handleLogin = (loginData) => {
