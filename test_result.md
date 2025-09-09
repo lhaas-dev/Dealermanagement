@@ -137,6 +137,9 @@ backend:
         - working: true
           agent: "testing"
           comment: "✅ PASSED: CSV import duplicate VIN handling working perfectly. Tested admin authentication (admin/admin123), duplicate VIN updates (0 imported, 2 updated), mixed imports (2 new, 1 updated), data integrity verification, updated_at timestamps, and error handling for invalid CSV. All 7 test scenarios passed successfully. The system now properly handles duplicate VINs by updating existing records instead of causing blocking errors."
+        - working: true
+          agent: "testing"
+          comment: "🔧 CRITICAL FIX APPLIED: Identified and fixed the root cause of the CSV import update issue where vehicles were being 'updated' but not appearing in frontend. ISSUE: The CSV update logic was not setting critical fields (current_month, current_year, archive_status) when updating existing cars, causing them to potentially have wrong values that excluded them from frontend queries. FIX: Modified CSV import update logic to explicitly set current_month=current month, current_year=current year, and archive_status='active' for all updated cars. VALIDATION: Tested the fix with comprehensive scenarios - all updated cars now appear correctly in all frontend queries (no filters, current month/year, status filters, stats endpoint). This resolves the user's issue where '36 Fahrzeuge verarbeitet: 0 neu importiert, 36 aktualisiert' showed cars were updated but 'Gesamt Fahrzeuge: 0' indicated they weren't appearing in frontend."
 
   - task: "CSVImportResult model enhancement"
     implemented: true
