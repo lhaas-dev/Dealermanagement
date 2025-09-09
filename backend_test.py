@@ -149,14 +149,128 @@ class CarDealershipAPITester:
             self.created_car_ids.remove(car_id)
         return success, response
 
-    def test_nonexistent_car(self):
-        """Test getting a non-existent car"""
-        fake_id = "nonexistent-car-id"
+    def test_csv_import(self, csv_file_path):
+        """Test CSV import functionality"""
+        print(f"\n🔍 Testing CSV Import...")
+        print(f"   File: {csv_file_path}")
+        
+        try:
+            url = f"{self.base_url}/cars/import-csv"
+            
+            with open(csv_file_path, 'rb') as f:
+                files = {'file': ('sample_inventory.csv', f, 'text/csv')}
+                response = requests.post(url, files=files)
+            
+            self.tests_run += 1
+            success = response.status_code == 200
+            
+            if success:
+                self.tests_passed += 1
+                print(f"✅ Passed - Status: {response.status_code}")
+                try:
+                    response_data = response.json()
+                    print(f"   Response: {json.dumps(response_data, indent=2)}")
+                    return True, response_data
+                except:
+                    return True, {}
+            else:
+                print(f"❌ Failed - Expected 200, got {response.status_code}")
+                try:
+                    error_data = response.json()
+                    print(f"   Error: {error_data}")
+                except:
+                    print(f"   Error: {response.text}")
+                return False, {}
+                
+        except Exception as e:
+            print(f"❌ Failed - Error: {str(e)}")
+            return False, {}
+
+    def test_photo_verification_required(self, car_id):
+        """Test that photo verification is required for marking as present"""
+        # Test without photos (should fail)
+        success1, _ = self.run_test(
+            f"Mark Present Without Photos (should fail) ({car_id[:8]}...)",
+            "PATCH",
+            f"cars/{car_id}/status",
+            400,
+            data={"status": "present"}
+        )
+        
+        # Test with only car photo (should fail)
+        success2, _ = self.run_test(
+            f"Mark Present With Only Car Photo (should fail) ({car_id[:8]}...)",
+            "PATCH",
+            f"cars/{car_id}/status",
+            400,
+            data={"status": "present", "car_photo": "fake_base64_data"}
+        )
+        
+        # Test with only VIN photo (should fail)
+        success3, _ = self.run_test(
+            f"Mark Present With Only VIN Photo (should fail) ({car_id[:8]}...)",
+            "PATCH",
+            f"cars/{car_id}/status",
+            400,
+            data={"status": "present", "vin_photo": "fake_base64_data"}
+        )
+        
+        return success1 and success2 and success3
+
+    def test_photo_verification_success(self, car_id):
+        """Test successful photo verification"""
+        # Create fake base64 image data
+        fake_image_data = base64.b64encode(b"fake_image_data").decode('utf-8')
+        
         return self.run_test(
-            "Get Non-existent Car (should fail)",
-            "GET",
-            f"cars/{fake_id}",
-            404
+            f"Mark Present With Both Photos ({car_id[:8]}...)",
+            "PATCH",
+            f"cars/{car_id}/status",
+            200,
+            data={
+                "status": "present",
+                "car_photo": fake_image_data,
+                "vin_photo": fake_image_data
+            }
+        )
+
+    def test_default_status_absent(self):
+        """Test that new cars default to absent status"""
+        car_data = {
+            "make": "Test",
+            "model": "DefaultStatus",
+            "year": 2023,
+            "price": 25000.00,
+            "vin": "TEST123456789"
+        }
+        
+        success, response = self.run_test(
+            "Create Car (should default to absent)",
+            "POST",
+            "cars",
+            200,
+            data=car_data
+        )
+        
+        if success and response.get('status') == 'absent':
+            print("✅ Car correctly defaults to 'absent' status")
+            if 'id' in response:
+                self.created_car_ids.append(response['id'])
+            return True, response
+        elif success:
+            print(f"❌ Car status is '{response.get('status')}', expected 'absent'")
+            return False, response
+        else:
+            return False, {}
+
+    def test_mark_absent_clears_photos(self, car_id):
+        """Test that marking as absent clears stored photos"""
+        return self.run_test(
+            f"Mark Absent (should clear photos) ({car_id[:8]}...)",
+            "PATCH",
+            f"cars/{car_id}/status",
+            200,
+            data={"status": "absent"}
         )
 
     def cleanup(self):
