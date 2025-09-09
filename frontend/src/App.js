@@ -497,9 +497,9 @@ function App() {
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Fahrzeuge aus CSV importieren</DialogTitle>
+                    <DialogTitle>CSV-Datei mit Spalten importieren</DialogTitle>
                     <DialogDescription>
-                      CSV-Datei mit Spalten: make, model, year, price, vin (optional), image_url (optional)
+                      CSV-Datei mit Spalten: make, model, number, purchase_date (optional), vin (optional), image_url (optional)
                       <br />Alle importierten Fahrzeuge werden als "abwesend" markiert.
                     </DialogDescription>
                   </DialogHeader>
