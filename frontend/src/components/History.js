@@ -471,6 +471,105 @@ const History = ({ user, authToken }) => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Archive Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <Trash2 className="w-5 h-5" />
+              Archiv löschen
+            </DialogTitle>
+            <DialogDescription>
+              ⚠️ Sie sind dabei, das Archiv "{archiveToDelete?.archive_name}" permanent zu löschen.
+              <br />
+              <strong>Diese Aktion kann nicht rückgängig gemacht werden!</strong>
+              <br />
+              Alle archivierten Fahrzeugdaten gehen verloren.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Label htmlFor="delete-confirmation">
+              Geben Sie "LÖSCHEN" ein, um zu bestätigen:
+            </Label>
+            <Input
+              id="delete-confirmation"
+              value={deleteConfirmation}
+              onChange={(e) => setDeleteConfirmation(e.target.value)}
+              placeholder="LÖSCHEN"
+              className="mt-2"
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowDeleteDialog(false);
+                setDeleteConfirmation('');
+                setArchiveToDelete(null);
+              }}
+            >
+              Abbrechen
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={deleteArchive}
+              disabled={deleteConfirmation !== 'LÖSCHEN'}
+            >
+              Archiv löschen
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete All Archives Dialog */}
+      <Dialog open={showDeleteAllDialog} onOpenChange={setShowDeleteAllDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <Trash2 className="w-5 h-5" />
+              Alle Archive löschen
+            </DialogTitle>
+            <DialogDescription>
+              ⚠️ Sie sind dabei, ALLE {archives.length} Archive permanent zu löschen.
+              <br />
+              <strong>Diese Aktion kann nicht rückgängig gemacht werden!</strong>
+              <br />
+              Alle archivierten Fahrzeugdaten gehen für immer verloren.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Label htmlFor="delete-all-confirmation">
+              Geben Sie "LÖSCHEN" ein, um zu bestätigen:
+            </Label>
+            <Input
+              id="delete-all-confirmation"
+              value={deleteAllConfirmation}
+              onChange={(e) => setDeleteAllConfirmation(e.target.value)}
+              placeholder="LÖSCHEN"
+              className="mt-2"
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowDeleteAllDialog(false);
+                setDeleteAllConfirmation('');
+              }}
+            >
+              Abbrechen
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={deleteAllArchives}
+              disabled={deleteAllConfirmation !== 'LÖSCHEN'}
+            >
+              Alle Archive löschen
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
