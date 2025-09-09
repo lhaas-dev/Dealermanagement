@@ -70,6 +70,63 @@ const History = ({ user, authToken }) => {
     }
   };
 
+  const deleteArchive = async () => {
+    if (deleteConfirmation !== 'LÖSCHEN') {
+      toast.error('Bitte geben Sie "LÖSCHEN" ein, um zu bestätigen');
+      return;
+    }
+
+    if (!archiveToDelete) return;
+
+    try {
+      await axios.delete(`${API}/archives/${archiveToDelete.id}`);
+      toast.success(`Archiv "${archiveToDelete.archive_name}" wurde erfolgreich gelöscht`);
+      
+      setShowDeleteDialog(false);
+      setDeleteConfirmation('');
+      setArchiveToDelete(null);
+      
+      // Refresh archives
+      await fetchArchives();
+    } catch (error) {
+      console.error('Error deleting archive:', error);
+      toast.error('Fehler beim Löschen des Archivs: ' + (error.response?.data?.detail || error.message));
+    }
+  };
+
+  const deleteAllArchives = async () => {
+    if (deleteAllConfirmation !== 'LÖSCHEN') {
+      toast.error('Bitte geben Sie "LÖSCHEN" ein, um zu bestätigen');
+      return;
+    }
+
+    try {
+      const response = await axios.delete(`${API}/archives`);
+      const result = response.data;
+      toast.success(`Alle Archive wurden erfolgreich gelöscht (${result.deleted_count} Archive)`);
+      
+      setShowDeleteAllDialog(false);
+      setDeleteAllConfirmation('');
+      
+      // Refresh archives
+      await fetchArchives();
+    } catch (error) {
+      console.error('Error deleting all archives:', error);
+      toast.error('Fehler beim Löschen aller Archive: ' + (error.response?.data?.detail || error.message));
+    }
+  };
+
+  const openDeleteDialog = (archive) => {
+    setArchiveToDelete(archive);
+    setDeleteConfirmation('');
+    setShowDeleteDialog(true);
+  };
+
+  const openDeleteAllDialog = () => {
+    setDeleteAllConfirmation('');
+    setShowDeleteAllDialog(true);
+  };
+
   const viewArchiveDetails = async (archive) => {
     try {
       const response = await axios.get(`${API}/archives/${archive.id}`);
