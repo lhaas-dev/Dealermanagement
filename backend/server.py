@@ -52,6 +52,31 @@ class UserRole(str, Enum):
     user = "user"
 
 
+class ArchiveStatus(str, Enum):
+    active = "active"
+    archived = "archived"
+
+
+# Archive Models
+class MonthlyArchive(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    month: int  # 1-12
+    year: int
+    archive_name: str  # e.g., "März 2024 Inventur"
+    total_cars: int
+    present_cars: int
+    absent_cars: int
+    cars_data: List[dict]  # Complete car data at time of archiving
+    archived_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    archived_by: str  # Admin user ID who archived
+
+
+class ArchiveCreate(BaseModel):
+    archive_name: str
+    month: int
+    year: int
+
+
 # Authentication Models
 class User(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
