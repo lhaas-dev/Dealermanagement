@@ -18,6 +18,11 @@ const History = ({ user, authToken }) => {
   const [loading, setLoading] = useState(true);
   const [showArchiveDialog, setShowArchiveDialog] = useState(false);
   const [showArchiveDetailsDialog, setShowArchiveDetailsDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showDeleteAllDialog, setShowDeleteAllDialog] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState('');
+  const [deleteAllConfirmation, setDeleteAllConfirmation] = useState('');
+  const [archiveToDelete, setArchiveToDelete] = useState(null);
   const [archiveFormData, setArchiveFormData] = useState({
     archive_name: "",
     month: new Date().getMonth() + 1,
