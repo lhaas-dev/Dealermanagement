@@ -534,10 +534,17 @@ async def import_cars_from_csv(file: UploadFile = File(...), current_user: User 
                         update_data = {k: v for k, v in car_data.items() if v is not None}
                         update_data["updated_at"] = datetime.now(timezone.utc)
                         
+                        # CRITICAL FIX: Ensure updated cars have correct current_month, current_year, and archive_status
+                        # This ensures updated cars appear in frontend queries
+                        current_date = datetime.now(timezone.utc)
+                        update_data["current_month"] = current_date.month
+                        update_data["current_year"] = current_date.year
+                        update_data["archive_status"] = "active"  # Ensure updated cars are active
+                        
                         update_mongo = prepare_for_mongo(update_data)
                         await db.cars.update_one({"vin": car_data['vin']}, {"$set": update_mongo})
                         updated_count += 1
-                        print(f"Successfully updated existing car: {make} {model} (VIN: {car_data['vin']})")
+                        print(f"Successfully updated existing car: {make} {model} (VIN: {car_data['vin']}) - set to current month/year and active status")
                         continue
                 
                 # Create new car if no duplicate VIN found
