@@ -381,12 +381,12 @@ async def import_cars_from_csv(file: UploadFile = File(...), current_user: User 
         errors = []
         
         # Check if CSV has required headers
-        expected_headers = {'make', 'model', 'year', 'price'}
+        expected_headers = {'make', 'model', 'number', 'purchase_date'}
         if not expected_headers.issubset(set(csv_reader.fieldnames or [])):
             missing_headers = expected_headers - set(csv_reader.fieldnames or [])
             raise HTTPException(
                 status_code=400, 
-                detail=f"Missing required CSV columns: {', '.join(missing_headers)}. Required: make, model, year, price"
+                detail=f"Missing required CSV columns: {', '.join(missing_headers)}. Required: make, model, number, purchase_date"
             )
         
         for row_num, row in enumerate(csv_reader, start=2):  # Start at 2 for header row
