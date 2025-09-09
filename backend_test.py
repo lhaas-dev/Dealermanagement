@@ -609,7 +609,7 @@ class CarDealershipAPITester:
             "Delete All Archives Without Auth (should fail)",
             "DELETE",
             "archives",
-            401,
+            403,  # FastAPI returns 403 for unauthenticated requests
             use_auth=False
         )
 
