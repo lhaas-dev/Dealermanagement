@@ -15,10 +15,13 @@ class CarDealershipAPITester:
         self.auth_headers = {'Content-Type': 'application/json'}
         self.created_archive_ids = []
 
-    def run_test(self, name, method, endpoint, expected_status, data=None, params=None):
+    def run_test(self, name, method, endpoint, expected_status, data=None, params=None, use_auth=True):
         """Run a single API test"""
         url = f"{self.base_url}/{endpoint}" if endpoint else self.base_url
-        headers = {'Content-Type': 'application/json'}
+        headers = self.auth_headers.copy() if use_auth and self.auth_token else {'Content-Type': 'application/json'}
+        
+        if use_auth and self.auth_token:
+            headers['Authorization'] = f'Bearer {self.auth_token}'
 
         self.tests_run += 1
         print(f"\n🔍 Testing {name}...")
