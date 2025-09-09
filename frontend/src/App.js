@@ -1014,6 +1014,11 @@ function App() {
             )}
           </TabsContent>
 
+          {/* History Tab */}
+          <TabsContent value="history">
+            <HistoryComponent user={user} authToken={authToken} />
+          </TabsContent>
+
           {/* User Management Tab (Admin only) */}
           {user.role === 'admin' && (
             <TabsContent value="users">
