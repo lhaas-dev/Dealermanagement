@@ -39,7 +39,7 @@ function App() {
     try {
       const params = new URLSearchParams();
       if (searchTerm) params.append('search', searchTerm);
-      if (statusFilter) params.append('status', statusFilter);
+      if (statusFilter && statusFilter !== 'all') params.append('status', statusFilter);
       
       const response = await axios.get(`${API}/cars?${params.toString()}`);
       setCars(response.data);
