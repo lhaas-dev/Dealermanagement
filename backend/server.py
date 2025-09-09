@@ -527,7 +527,6 @@ async def import_cars_from_csv(file: UploadFile = File(...), current_user: User 
                 print(f"Creating car with data: {car_data}")
                 
                 # Check for duplicate VIN if VIN is provided - UPDATE existing or CREATE new
-                updated_count = 0
                 if car_data['vin']:
                     existing_car = await db.cars.find_one({"vin": car_data['vin']})
                     if existing_car:
