@@ -362,8 +362,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "CSV import with duplicate VIN handling"
-    - "CSVImportResult model enhancement"
+    - "Frontend fix for CSV import display issue"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
