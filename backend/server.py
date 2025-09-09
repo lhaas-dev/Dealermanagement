@@ -129,10 +129,24 @@ async def import_cars_from_csv(file: UploadFile = File(...)):
     try:
         content = await file.read()
         csv_data = content.decode('utf-8')
+        
+        # Debug logging
+        print(f"CSV file received: {file.filename}, size: {len(content)} bytes")
+        print(f"CSV content preview: {csv_data[:200]}...")
+        
         csv_reader = csv.DictReader(io.StringIO(csv_data))
         
         imported_count = 0
         errors = []
+        
+        # Check if CSV has required headers
+        expected_headers = {'make', 'model', 'year', 'price'}
+        if not expected_headers.issubset(set(csv_reader.fieldnames or [])):
+            missing_headers = expected_headers - set(csv_reader.fieldnames or [])
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Missing required CSV columns: {', '.join(missing_headers)}. Required: make, model, year, price"
+            )
         
         for row_num, row in enumerate(csv_reader, start=2):  # Start at 2 for header row
             try:
@@ -142,16 +156,30 @@ async def import_cars_from_csv(file: UploadFile = File(...)):
                 year_str = row.get('year', '').strip()
                 price_str = row.get('price', '').strip()
                 
+                print(f"Processing row {row_num}: make={make}, model={model}, year={year_str}, price={price_str}")
+                
                 if not all([make, model, year_str, price_str]):
-                    errors.append(f"Row {row_num}: Missing required fields (make, model, year, price)")
+                    error_msg = f"Row {row_num}: Missing required fields (make={bool(make)}, model={bool(model)}, year={bool(year_str)}, price={bool(price_str)})"
+                    errors.append(error_msg)
+                    print(f"Error: {error_msg}")
                     continue
                 
                 # Convert and validate data types
                 try:
                     year = int(year_str)
+                    if year < 1900 or year > 2030:
+                        errors.append(f"Row {row_num}: Year {year} is not realistic (must be between 1900-2030)")
+                        continue
+                        
                     price = float(price_str.replace('$', '').replace(',', ''))
-                except ValueError:
-                    errors.append(f"Row {row_num}: Invalid year or price format")
+                    if price <= 0:
+                        errors.append(f"Row {row_num}: Price must be greater than 0")
+                        continue
+                        
+                except ValueError as ve:
+                    error_msg = f"Row {row_num}: Invalid year or price format - {str(ve)}"
+                    errors.append(error_msg)
+                    print(f"Error: {error_msg}")
                     continue
                 
                 # Create car object
@@ -165,23 +193,36 @@ async def import_cars_from_csv(file: UploadFile = File(...)):
                     'status': CarStatus.absent  # All imported cars start as absent
                 }
                 
+                print(f"Creating car with data: {car_data}")
+                
                 car = Car(**car_data)
                 car_mongo = prepare_for_mongo(car.dict())
                 await db.cars.insert_one(car_mongo)
                 imported_count += 1
                 
+                print(f"Successfully imported car: {make} {model}")
+                
             except Exception as e:
-                errors.append(f"Row {row_num}: {str(e)}")
+                error_msg = f"Row {row_num}: {str(e)}"
+                errors.append(error_msg)
+                print(f"Exception: {error_msg}")
         
-        return CSVImportResult(
+        result = CSVImportResult(
             success=True,
             imported_count=imported_count,
             errors=errors[:10],  # Limit errors to first 10
             message=f"Successfully imported {imported_count} cars"
         )
         
+        print(f"Import complete: {imported_count} cars imported, {len(errors)} errors")
+        return result
+        
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error processing CSV: {str(e)}")
+        error_msg = f"Error processing CSV: {str(e)}"
+        print(f"Fatal error: {error_msg}")
+        raise HTTPException(status_code=500, detail=error_msg)
 
 
 @api_router.get("/cars", response_model=List[Car])
