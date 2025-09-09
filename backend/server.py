@@ -524,21 +524,28 @@ async def import_cars_from_csv(file: UploadFile = File(...), current_user: User 
                 
                 print(f"Creating car with data: {car_data}")
                 
-                # Check for duplicate VIN if VIN is provided
+                # Check for duplicate VIN if VIN is provided - UPDATE existing or CREATE new
+                updated_count = 0
                 if car_data['vin']:
                     existing_car = await db.cars.find_one({"vin": car_data['vin']})
                     if existing_car:
-                        error_msg = f"Row {row_num}: Car with VIN '{car_data['vin']}' already exists"
-                        errors.append(error_msg)
-                        print(f"Error: {error_msg}")
+                        # Update existing car instead of skipping
+                        update_data = {k: v for k, v in car_data.items() if v is not None}
+                        update_data["updated_at"] = datetime.now(timezone.utc)
+                        
+                        update_mongo = prepare_for_mongo(update_data)
+                        await db.cars.update_one({"vin": car_data['vin']}, {"$set": update_mongo})
+                        updated_count += 1
+                        print(f"Successfully updated existing car: {make} {model} (VIN: {car_data['vin']})")
                         continue
                 
+                # Create new car if no duplicate VIN found
                 car = Car(**car_data)
                 car_mongo = prepare_for_mongo(car.dict())
                 await db.cars.insert_one(car_mongo)
                 imported_count += 1
                 
-                print(f"Successfully imported car: {make} {model}")
+                print(f"Successfully imported new car: {make} {model}")
                 
             except Exception as e:
                 error_msg = f"Row {row_num}: {str(e)}"
