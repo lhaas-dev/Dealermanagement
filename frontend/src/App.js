@@ -748,14 +748,17 @@ function App() {
                             >
                               <Edit className="w-4 h-4" />
                             </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => deleteCar(car.id)}
-                              className="text-red-600 hover:text-red-700"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
+                            {/* Delete button only for admins */}
+                            {user.role === 'admin' && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => deleteCar(car.id)}
+                                className="text-red-600 hover:text-red-700"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            )}
                           </div>
                         </div>
                       </CardContent>
