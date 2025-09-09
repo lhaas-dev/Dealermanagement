@@ -343,6 +343,36 @@ async def create_default_admin():
         print("⚠️  Please change the default password after first login!")
 
 
+async def cleanup_old_archives():
+    """Delete archives older than 6 months automatically"""
+    try:
+        six_months_ago = datetime.now(timezone.utc) - timedelta(days=180)  # 6 months = ~180 days
+        
+        # Find archives older than 6 months
+        old_archives = await db.monthly_archives.find({
+            "archived_at": {"$lt": six_months_ago}
+        }).to_list(1000)
+        
+        if old_archives:
+            # Delete old archives
+            result = await db.monthly_archives.delete_many({
+                "archived_at": {"$lt": six_months_ago}
+            })
+            
+            print(f"🗑️  Automatic cleanup: Deleted {result.deleted_count} archives older than 6 months")
+            
+            # Log the deleted archives
+            for archive in old_archives:
+                archive_date = archive.get('archived_at', 'Unknown')
+                archive_name = archive.get('archive_name', 'Unknown')
+                print(f"   - Deleted: {archive_name} (archived: {archive_date})")
+        else:
+            print("✅ Archive cleanup: No archives older than 6 months found")
+            
+    except Exception as e:
+        print(f"❌ Error during archive cleanup: {str(e)}")
+
+
 # API Routes
 @api_router.get("/")
 async def root():
