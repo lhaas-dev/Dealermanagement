@@ -729,6 +729,10 @@ class CarDealershipAPITester:
             success, _ = self.test_delete_single_archive(archive_id)
             if success:
                 self.created_archive_ids.remove(archive_id)
+            else:
+                # Archive might already be deleted, remove from tracking anyway
+                print(f"   Archive {archive_id[:8]}... already deleted or not found")
+                self.created_archive_ids.remove(archive_id)
 
 def run_extended_archive_deletion_tests():
     """Run comprehensive extended archive deletion system tests"""
