@@ -178,72 +178,86 @@ const History = ({ user, authToken }) => {
         </div>
         
         {user.role === 'admin' && (
-          <Dialog open={showArchiveDialog} onOpenChange={setShowArchiveDialog}>
-            <DialogTrigger asChild>
-              <Button className="flex items-center gap-2">
-                <Archive className="w-4 h-4" />
-                Monat Archivieren
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Monatliches Archiv erstellen</DialogTitle>
-                <DialogDescription>
-                  Alle aktuellen Fahrzeuge für den gewählten Monat werden archiviert.
-                  Dies kann nicht rückgängig gemacht werden.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div>
-                  <Label htmlFor="archive-name">Archiv-Name</Label>
-                  <Input
-                    id="archive-name"
-                    placeholder="z.B. Februar 2024 Inventur"
-                    value={archiveFormData.archive_name}
-                    onChange={(e) => setArchiveFormData({
-                      ...archiveFormData,
-                      archive_name: e.target.value
-                    })}
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="archive-month">Monat</Label>
-                    <Input
-                      id="archive-month"
-                      type="number"
-                      min="1"
-                      max="12"
-                      value={archiveFormData.month}
-                      onChange={(e) => setArchiveFormData({
-                        ...archiveFormData,
-                        month: parseInt(e.target.value)
-                      })}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="archive-year">Jahr</Label>
-                    <Input
-                      id="archive-year"
-                      type="number"
-                      min="2020"
-                      max="2030"
-                      value={archiveFormData.year}
-                      onChange={(e) => setArchiveFormData({
-                        ...archiveFormData,
-                        year: parseInt(e.target.value)
-                      })}
-                    />
-                  </div>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button onClick={createMonthlyArchive} className="w-full">
-                  Archiv erstellen
+          <div className="flex gap-2">
+            <Dialog open={showArchiveDialog} onOpenChange={setShowArchiveDialog}>
+              <DialogTrigger asChild>
+                <Button className="flex items-center gap-2">
+                  <Archive className="w-4 h-4" />
+                  Monat Archivieren
                 </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Monatliches Archiv erstellen</DialogTitle>
+                  <DialogDescription>
+                    Alle aktuellen Fahrzeuge für den gewählten Monat werden archiviert.
+                    Dies kann nicht rückgängig gemacht werden.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div>
+                    <Label htmlFor="archive-name">Archiv-Name</Label>
+                    <Input
+                      id="archive-name"
+                      placeholder="z.B. Februar 2024 Inventur"
+                      value={archiveFormData.archive_name}
+                      onChange={(e) => setArchiveFormData({
+                        ...archiveFormData,
+                        archive_name: e.target.value
+                      })}
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="archive-month">Monat</Label>
+                      <Input
+                        id="archive-month"
+                        type="number"
+                        min="1"
+                        max="12"
+                        value={archiveFormData.month}
+                        onChange={(e) => setArchiveFormData({
+                          ...archiveFormData,
+                          month: parseInt(e.target.value)
+                        })}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="archive-year">Jahr</Label>
+                      <Input
+                        id="archive-year"
+                        type="number"
+                        min="2020"
+                        max="2030"
+                        value={archiveFormData.year}
+                        onChange={(e) => setArchiveFormData({
+                          ...archiveFormData,
+                          year: parseInt(e.target.value)
+                        })}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button onClick={createMonthlyArchive} className="w-full">
+                    Archiv erstellen
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            {/* Delete All Archives Button */}
+            {archives.length > 0 && (
+              <Button 
+                variant="destructive" 
+                onClick={openDeleteAllDialog}
+                className="flex items-center gap-2"
+              >
+                <Trash2 className="w-4 h-4" />
+                Alle Archive löschen
+              </Button>
+            )}
+          </div>
         )}
       </div>
 
