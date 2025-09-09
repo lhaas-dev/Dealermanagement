@@ -595,67 +595,68 @@ function App() {
                       )}
                     </div>
                   )}
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="text-lg">{car.make} {car.model}</CardTitle>
-                      <CardDescription>{car.year}</CardDescription>
-                    </div>
-                    <Badge variant={car.status === 'present' ? 'default' : 'destructive'}>
-                      {car.status}
-                      {car.status === 'present' && car.car_photo && (
-                        <Camera className="w-3 h-3 ml-1" title="Photo verified" />
-                      )}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <p className="text-2xl font-bold text-green-600">
-                      ${car.price.toLocaleString()}
-                    </p>
-                    {car.vin && (
-                      <p className="text-sm text-gray-600">VIN: {car.vin}</p>
-                    )}
-                    <div className="flex gap-2 pt-4">
-                      <Button
-                        size="sm"
-                        variant={car.status === 'present' ? 'destructive' : 'default'}
-                        onClick={() => toggleCarStatus(car)}
-                        className="flex-1"
-                      >
-                        {car.status === 'present' ? (
-                          <>
-                            <XCircle className="w-4 h-4 mr-1" />
-                            Mark Absent
-                          </>
-                        ) : (
-                          <>
-                            <CheckCircle className="w-4 h-4 mr-1" />
-                            Mark Present
-                          </>
+                  <CardHeader>
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <CardTitle className="text-lg">{car.make} {car.model}</CardTitle>
+                        <CardDescription>{car.year}</CardDescription>
+                      </div>
+                      <Badge variant={car.status === 'present' ? 'default' : 'destructive'}>
+                        {car.status}
+                        {car.status === 'present' && car.car_photo && (
+                          <Camera className="w-3 h-3 ml-1" title="Photo verified" />
                         )}
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => openEditDialog(car)}
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => deleteCar(car.id)}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                      </Badge>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <p className="text-2xl font-bold text-green-600">
+                        ${car.price.toLocaleString()}
+                      </p>
+                      {car.vin && (
+                        <p className="text-sm text-gray-600">VIN: {car.vin}</p>
+                      )}
+                      <div className="flex gap-2 pt-4">
+                        <Button
+                          size="sm"
+                          variant={car.status === 'present' ? 'destructive' : 'default'}
+                          onClick={() => toggleCarStatus(car)}
+                          className="flex-1"
+                        >
+                          {car.status === 'present' ? (
+                            <>
+                              <XCircle className="w-4 h-4 mr-1" />
+                              Mark Absent
+                            </>
+                          ) : (
+                            <>
+                              <CheckCircle className="w-4 h-4 mr-1" />
+                              Mark Present
+                            </>
+                          )}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => openEditDialog(car)}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => deleteCar(car.id)}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         )}
 
