@@ -926,24 +926,24 @@ function App() {
 
             {/* Photo Verification Dialog */}
             <Dialog open={showPhotoDialog} onOpenChange={setShowPhotoDialog}>
-              <DialogContent className="max-w-md">
+              <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>Foto-Verifizierung erforderlich</DialogTitle>
-                  <DialogDescription>
-                    Um dieses Fahrzeug als anwesend zu markieren, nehmen Sie bitte Fotos vom Fahrzeug und der VIN-Plakette auf
+                  <DialogTitle className="text-lg sm:text-xl">Fahrzeug als anwesend markieren</DialogTitle>
+                  <DialogDescription className="text-sm sm:text-base">
+                    Bitte nehmen Sie ein Foto des Fahrzeugs und der VIN-Nummer auf, um die Anwesenheit zu bestätigen.
                   </DialogDescription>
                 </DialogHeader>
-                <div className="space-y-4 py-4">
+                <div className="grid gap-4 sm:gap-6 py-4">
                   {/* Car Photo */}
                   <div>
-                    <Label>Fahrzeug-Foto</Label>
-                    <div className="mt-2 space-y-2">
+                    <Label className="text-sm sm:text-base font-medium">Fahrzeug-Foto</Label>
+                    <div className="mt-2 space-y-3">
                       <Button
                         variant="outline"
                         onClick={() => carPhotoRef.current?.click()}
-                        className="w-full"
+                        className="w-full h-12 sm:h-11 text-sm sm:text-base"
                       >
-                        <Camera className="w-4 h-4 mr-2" />
+                        <Camera className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                         {carPhoto ? 'Fahrzeug-Foto aufgenommen ✓' : 'Fahrzeug-Foto aufnehmen'}
                       </Button>
                       <input
@@ -955,9 +955,9 @@ function App() {
                         className="hidden"
                       />
                       {carPhoto && (
-                        <div className="w-full h-32 bg-green-50 border-2 border-green-200 rounded flex items-center justify-center">
-                          <CheckCircle className="w-8 h-8 text-green-600" />
-                          <span className="ml-2 text-green-700">Fahrzeug-Foto aufgenommen</span>
+                        <div className="w-full h-24 sm:h-32 bg-green-50 border-2 border-green-200 rounded flex items-center justify-center">
+                          <CheckCircle className="w-6 h-6 sm:w-8 sm:h-8 text-green-600" />
+                          <span className="ml-2 text-sm sm:text-base text-green-700">Fahrzeug-Foto aufgenommen</span>
                         </div>
                       )}
                     </div>
@@ -965,14 +965,14 @@ function App() {
 
                   {/* VIN Photo */}
                   <div>
-                    <Label>VIN-Foto</Label>
-                    <div className="mt-2 space-y-2">
+                    <Label className="text-sm sm:text-base font-medium">VIN-Foto</Label>
+                    <div className="mt-2 space-y-3">
                       <Button
                         variant="outline"
                         onClick={() => vinPhotoRef.current?.click()}
-                        className="w-full"
+                        className="w-full h-12 sm:h-11 text-sm sm:text-base"
                       >
-                        <FileText className="w-4 h-4 mr-2" />
+                        <FileText className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                         {vinPhoto ? 'VIN-Foto aufgenommen ✓' : 'VIN-Foto aufnehmen'}
                       </Button>
                       <input
@@ -984,9 +984,9 @@ function App() {
                         className="hidden"
                       />
                       {vinPhoto && (
-                        <div className="w-full h-32 bg-green-50 border-2 border-green-200 rounded flex items-center justify-center">
-                          <CheckCircle className="w-8 h-8 text-green-600" />
-                          <span className="ml-2 text-green-700">VIN-Foto aufgenommen</span>
+                        <div className="w-full h-24 sm:h-32 bg-green-50 border-2 border-green-200 rounded flex items-center justify-center">
+                          <CheckCircle className="w-6 h-6 sm:w-8 sm:h-8 text-green-600" />
+                          <span className="ml-2 text-sm sm:text-base text-green-700">VIN-Foto aufgenommen</span>
                         </div>
                       )}
                     </div>
@@ -996,7 +996,7 @@ function App() {
                   <Button
                     onClick={handleMarkPresent}
                     disabled={!carPhoto || !vinPhoto}
-                    className="w-full"
+                    className="w-full h-12 sm:h-11 text-sm sm:text-base"
                   >
                     Als anwesend markieren
                   </Button>
