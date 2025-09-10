@@ -912,7 +912,7 @@ function App() {
                             </Button>
                             
                             {/* Delete button only for admins */}
-                            {user && user.role === 'admin' && (
+                            {isAdmin && (
                               <Button
                                 size="sm"
                                 variant="outline"
