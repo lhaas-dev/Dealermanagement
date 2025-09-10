@@ -782,14 +782,14 @@ function App() {
             </div>
 
             {/* Rest of the cars grid and dialogs - keeping existing code */}
-            {/* Cars Grid */}
+            {/* Cars Grid - 3 Fahrzeuge pro Reihe auf Desktop/Tablet */}
             {loading ? (
               <div className="text-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
                 <p className="text-sm sm:text-base text-gray-600">Wird geladen...</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {cars.map((car) => {
                   // Use verification photo if car is present and has car_photo, otherwise use image_url
                   const displayImage = car.status === 'present' && car.car_photo 
