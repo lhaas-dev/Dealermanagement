@@ -508,7 +508,9 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus: []
+  current_focus: 
+    - "Delete single archive functionality"
+    - "Delete all archives functionality"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
