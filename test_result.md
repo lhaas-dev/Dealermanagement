@@ -354,9 +354,9 @@ backend:
 frontend:
   - task: "Delete button functionality for vehicles"
     implemented: true
-    working: true
+    working: false
     file: "/app/frontend/src/App.js"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
     needs_retesting: false
     status_history:
@@ -366,6 +366,9 @@ frontend:
         - working: true
           agent: "testing"
           comment: "✅ PASSED: Delete button functionality is fully working and correctly implemented. COMPREHENSIVE TEST RESULTS: ✅ Admin authentication (admin/admin123) working correctly ✅ Admin role detection working properly ✅ Delete buttons ARE visible for admin users in vehicle cards ✅ Delete button has correct text ('Löschen' on desktop, 'Del' on mobile) ✅ Delete button has proper red styling (text-red-600 hover:text-red-700 hover:bg-red-50) ✅ Delete button hover effects working correctly ✅ Delete confirmation dialog appears with correct German message: 'Möchten Sie dieses Fahrzeug wirklich löschen?' ✅ Delete button properly positioned with other buttons (Status toggle, Edit, Delete) ✅ Mobile responsiveness working correctly ✅ Button alignment and layout working properly. CONCLUSION: The user's report appears to be incorrect - delete button functionality is fully implemented and working as expected. All 15 requested test scenarios passed successfully."
+        - working: false
+          agent: "testing"
+          comment: "❌ CRITICAL BUG CONFIRMED: User's report is CORRECT - individual delete buttons are missing from most vehicle cards. DETAILED FINDINGS: ✅ Admin authentication (admin/admin123) working correctly ✅ Admin role confirmed as Administrator ✅ 'Alle löschen' button visible (proves admin privileges) ❌ CRITICAL ISSUE: Only 1 out of 6 vehicle cards shows delete buttons ❌ 5 out of 6 vehicle cards have NO buttons at all (Status, Edit, Delete all missing) ❌ This is a React state management/rendering issue ✅ The 1 card that works shows all 3 buttons correctly with proper red styling ✅ localStorage contains correct user data: role='admin' 🔍 ROOT CAUSE: The conditional rendering `user && user.role === 'admin'` is not consistently evaluating to true across all vehicle card renders, suggesting a React state management issue or component lifecycle problem. RECOMMENDATION: Main agent must investigate user state consistency during vehicle card rendering."
 
   - task: "Create History component"
     implemented: true
