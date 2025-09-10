@@ -773,6 +773,26 @@ function App() {
               )}
             </div>
 
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 sm:mb-8">
+              <Button onClick={() => setShowAddDialog(true)} className="flex-1 sm:flex-none h-11 sm:h-10">
+                <Plus className="w-4 h-4 sm:mr-2" />
+                <span>Fahrzeug hinzufügen</span>
+              </Button>
+              
+              {user.role === 'admin' && cars.length > 0 && (
+                <Button
+                  onClick={deleteAllCars}
+                  variant="destructive"
+                  className="flex-1 sm:flex-none h-11 sm:h-10"
+                >
+                  <Trash2 className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Alle löschen</span>
+                  <span className="sm:hidden">Löschen</span>
+                </Button>
+              )}
+            </div>
+
             {/* Rest of the cars grid and dialogs - keeping existing code */}
             {/* Cars Grid */}
             {loading ? (
