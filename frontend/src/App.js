@@ -612,6 +612,17 @@ function App() {
                   <SelectItem value="absent">Abwesend</SelectItem>
                 </SelectContent>
               </Select>
+              
+              <Select value={consignmentFilter} onValueChange={setConsignmentFilter}>
+                <SelectTrigger className="w-full sm:w-[200px]">
+                  <SelectValue placeholder="Fahrzeugtyp" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Alle Fahrzeuge</SelectItem>
+                  <SelectItem value="regular">Eigene Fahrzeuge</SelectItem>
+                  <SelectItem value="consignment">Konsignationen</SelectItem>
+                </SelectContent>
+              </Select>
 
               {/* CSV Upload Dialog */}
               <Dialog open={showCSVDialog} onOpenChange={setShowCSVDialog}>
