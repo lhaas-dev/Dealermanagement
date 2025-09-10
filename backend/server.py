@@ -670,18 +670,31 @@ async def get_inventory_stats(
     if year:
         query["current_year"] = year
     
+    # Total cars (all active cars)
     total_cars = await db.cars.count_documents(query)
-    present_query = {**query, "status": "present"}
-    absent_query = {**query, "status": "absent"}
     
-    present_cars = await db.cars.count_documents(present_query)
-    absent_cars = await db.cars.count_documents(absent_query)
+    # Regular cars (non-consignment)
+    regular_query = {**query, "is_consignment": {"$ne": True}}
+    regular_total = await db.cars.count_documents(regular_query)
+    regular_present = await db.cars.count_documents({**regular_query, "status": "present"})
+    regular_absent = await db.cars.count_documents({**regular_query, "status": "absent"})
+    
+    # Consignment cars
+    consignment_query = {**query, "is_consignment": True}
+    consignment_total = await db.cars.count_documents(consignment_query)
+    consignment_present = await db.cars.count_documents({**consignment_query, "status": "present"})
+    consignment_absent = await db.cars.count_documents({**consignment_query, "status": "absent"})
     
     return {
         "total_cars": total_cars,
-        "present_cars": present_cars,
-        "absent_cars": absent_cars,
-        "present_percentage": round((present_cars / total_cars * 100) if total_cars > 0 else 0, 1),
+        "regular_cars": regular_total,
+        "present_cars": regular_present,
+        "absent_cars": regular_absent,
+        "present_percentage": round((regular_present / regular_total * 100) if regular_total > 0 else 0, 1),
+        "consignment_cars": consignment_total,
+        "consignment_present": consignment_present,
+        "consignment_absent": consignment_absent,
+        "consignment_present_percentage": round((consignment_present / consignment_total * 100) if consignment_total > 0 else 0, 1),
         "current_month": month or current_date.month,
         "current_year": year or current_date.year
     }
