@@ -538,53 +538,53 @@ function App() {
           {/* Inventory Tab */}
           <TabsContent value="inventory">
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
-              <Card>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
+              <Card className="hover:shadow-md transition-shadow">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Eigene Fahrzeuge</CardTitle>
-                  <BarChart3 className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-xs sm:text-sm font-medium text-gray-600">Eigene Fahrzeuge</CardTitle>
+                  <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
                 </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.regular_cars || 0}</div>
+                <CardContent className="pt-0">
+                  <div className="text-lg sm:text-2xl font-bold text-slate-800">{stats.regular_cars || 0}</div>
                 </CardContent>
               </Card>
               
-              <Card>
+              <Card className="hover:shadow-md transition-shadow">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Anwesend</CardTitle>
-                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <CardTitle className="text-xs sm:text-sm font-medium text-gray-600">Anwesend</CardTitle>
+                  <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-600" />
                 </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-green-600">{stats.present_cars || 0}</div>
+                <CardContent className="pt-0">
+                  <div className="text-lg sm:text-2xl font-bold text-green-600">{stats.present_cars || 0}</div>
                 </CardContent>
               </Card>
               
-              <Card>
+              <Card className="hover:shadow-md transition-shadow">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Abwesend</CardTitle>
-                  <XCircle className="h-4 w-4 text-red-600" />
+                  <CardTitle className="text-xs sm:text-sm font-medium text-gray-600">Abwesend</CardTitle>
+                  <XCircle className="h-3 w-3 sm:h-4 sm:w-4 text-red-600" />
                 </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-red-600">{stats.absent_cars || 0}</div>
+                <CardContent className="pt-0">
+                  <div className="text-lg sm:text-2xl font-bold text-red-600">{stats.absent_cars || 0}</div>
                 </CardContent>
               </Card>
               
-              <Card>
+              <Card className="hover:shadow-md transition-shadow">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Konsignationen</CardTitle>
-                  <Car className="h-4 w-4 text-blue-600" />
+                  <CardTitle className="text-xs sm:text-sm font-medium text-gray-600">Konsignationen</CardTitle>
+                  <Car className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
                 </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-blue-600">{stats.consignment_cars || 0}</div>
+                <CardContent className="pt-0">
+                  <div className="text-lg sm:text-2xl font-bold text-blue-600">{stats.consignment_cars || 0}</div>
                 </CardContent>
               </Card>
               
-              <Card>
+              <Card className="hover:shadow-md transition-shadow col-span-2 sm:col-span-1">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Anwesend %</CardTitle>
+                  <CardTitle className="text-xs sm:text-sm font-medium text-gray-600">Anwesend %</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.present_percentage || 0}%</div>
+                <CardContent className="pt-0">
+                  <div className="text-lg sm:text-2xl font-bold text-slate-800">{stats.present_percentage || 0}%</div>
                 </CardContent>
               </Card>
             </div>
