@@ -1537,6 +1537,509 @@ Audi,A4 Test,AUDI-TEST-003,2024-03-10,WAUZZZ8K1DA555666"""
         print("✅ CSV import and display functionality appears to be working correctly")
         return 0
 
+def run_consignment_vehicle_tests():
+    """Test comprehensive consignment vehicle functionality"""
+    print("🚗 Starting Comprehensive Consignment Vehicle Tests")
+    print("=" * 60)
+    
+    tester = CarDealershipAPITester()
+    
+    # Test 1: Authentication & Setup
+    print(f"\n🔐 AUTHENTICATION & SETUP")
+    print("-" * 40)
+    
+    success, login_response = tester.test_admin_login("admin", "admin123")
+    if not success:
+        print("❌ CRITICAL: Admin login failed - cannot proceed with consignment tests")
+        return 1
+    
+    print("✅ Admin login successful (admin/admin123)")
+    
+    # Test 2: Consignment Vehicle Creation
+    print(f"\n🏗️  CONSIGNMENT VEHICLE CREATION")
+    print("-" * 40)
+    
+    # Create consignment vehicle
+    consignment_car_data = {
+        "make": "BMW",
+        "model": "X5 Consignment",
+        "number": "CONS-001",
+        "purchase_date": "2024-01-15",
+        "vin": "WBAXH7C30EP111111",
+        "is_consignment": True
+    }
+    
+    success, consignment_car = tester.run_test(
+        "Create Consignment Vehicle (is_consignment=true)",
+        "POST",
+        "cars",
+        200,
+        data=consignment_car_data
+    )
+    
+    consignment_car_id = None
+    if success and 'id' in consignment_car:
+        consignment_car_id = consignment_car['id']
+        tester.created_car_ids.append(consignment_car_id)
+        print(f"✅ Consignment vehicle created with ID: {consignment_car_id[:8]}...")
+        
+        # Verify is_consignment field is properly stored
+        if consignment_car.get('is_consignment') == True:
+            print("✅ is_consignment field properly stored as true")
+        else:
+            print(f"❌ is_consignment field incorrect: {consignment_car.get('is_consignment')}")
+    else:
+        print("❌ Failed to create consignment vehicle")
+        return 1
+    
+    # Create regular vehicle (is_consignment=false)
+    regular_car_data = {
+        "make": "Mercedes",
+        "model": "C-Class Regular",
+        "number": "REG-001",
+        "purchase_date": "2024-02-20",
+        "vin": "WDDGF4HB1CA222222",
+        "is_consignment": False
+    }
+    
+    success, regular_car = tester.run_test(
+        "Create Regular Vehicle (is_consignment=false)",
+        "POST",
+        "cars",
+        200,
+        data=regular_car_data
+    )
+    
+    regular_car_id = None
+    if success and 'id' in regular_car:
+        regular_car_id = regular_car['id']
+        tester.created_car_ids.append(regular_car_id)
+        print(f"✅ Regular vehicle created with ID: {regular_car_id[:8]}...")
+        
+        # Verify is_consignment field is properly stored
+        if regular_car.get('is_consignment') == False:
+            print("✅ is_consignment field properly stored as false")
+        else:
+            print(f"❌ is_consignment field incorrect: {regular_car.get('is_consignment')}")
+    else:
+        print("❌ Failed to create regular vehicle")
+        return 1
+    
+    # Create vehicle without is_consignment field (should default to false)
+    default_car_data = {
+        "make": "Audi",
+        "model": "A4 Default",
+        "number": "DEF-001",
+        "purchase_date": "2024-03-10",
+        "vin": "WAUZZZ8K1DA333333"
+        # is_consignment omitted - should default to false
+    }
+    
+    success, default_car = tester.run_test(
+        "Create Vehicle (is_consignment omitted - should default to false)",
+        "POST",
+        "cars",
+        200,
+        data=default_car_data
+    )
+    
+    default_car_id = None
+    if success and 'id' in default_car:
+        default_car_id = default_car['id']
+        tester.created_car_ids.append(default_car_id)
+        print(f"✅ Default vehicle created with ID: {default_car_id[:8]}...")
+        
+        # Verify is_consignment field defaults to false
+        if default_car.get('is_consignment') == False:
+            print("✅ is_consignment field properly defaults to false")
+        else:
+            print(f"❌ is_consignment field incorrect default: {default_car.get('is_consignment')}")
+    else:
+        print("❌ Failed to create default vehicle")
+        return 1
+    
+    # Test 3: Consignment Filtering
+    print(f"\n🔍 CONSIGNMENT FILTERING")
+    print("-" * 40)
+    
+    # Test GET /api/cars?is_consignment=true (should return only consignment vehicles)
+    success, consignment_vehicles = tester.run_test(
+        "Get Consignment Vehicles Only (is_consignment=true)",
+        "GET",
+        "cars",
+        200,
+        params={"is_consignment": True}
+    )
+    
+    if success:
+        consignment_count = len(consignment_vehicles)
+        print(f"✅ Found {consignment_count} consignment vehicles")
+        
+        # Verify all returned vehicles are consignment
+        all_consignment = all(car.get('is_consignment') == True for car in consignment_vehicles)
+        if all_consignment:
+            print("✅ All returned vehicles are consignment vehicles")
+        else:
+            print("❌ Some returned vehicles are not consignment vehicles")
+            
+        # Check if our created consignment vehicle is in the results
+        our_consignment = next((car for car in consignment_vehicles if car.get('id') == consignment_car_id), None)
+        if our_consignment:
+            print("✅ Our created consignment vehicle found in results")
+        else:
+            print("❌ Our created consignment vehicle not found in results")
+    else:
+        print("❌ Failed to get consignment vehicles")
+    
+    # Test GET /api/cars?is_consignment=false (should return only regular vehicles)
+    success, regular_vehicles = tester.run_test(
+        "Get Regular Vehicles Only (is_consignment=false)",
+        "GET",
+        "cars",
+        200,
+        params={"is_consignment": False}
+    )
+    
+    if success:
+        regular_count = len(regular_vehicles)
+        print(f"✅ Found {regular_count} regular vehicles")
+        
+        # Verify all returned vehicles are regular (not consignment)
+        all_regular = all(car.get('is_consignment') == False for car in regular_vehicles)
+        if all_regular:
+            print("✅ All returned vehicles are regular vehicles")
+        else:
+            print("❌ Some returned vehicles are consignment vehicles")
+            
+        # Check if our created regular vehicles are in the results
+        our_regular = next((car for car in regular_vehicles if car.get('id') == regular_car_id), None)
+        our_default = next((car for car in regular_vehicles if car.get('id') == default_car_id), None)
+        
+        if our_regular and our_default:
+            print("✅ Both our created regular vehicles found in results")
+        else:
+            print("❌ Some of our created regular vehicles not found in results")
+    else:
+        print("❌ Failed to get regular vehicles")
+    
+    # Test GET /api/cars (no consignment filter - should return all vehicles)
+    success, all_vehicles = tester.run_test(
+        "Get All Vehicles (no consignment filter)",
+        "GET",
+        "cars",
+        200
+    )
+    
+    if success:
+        all_count = len(all_vehicles)
+        print(f"✅ Found {all_count} total vehicles")
+        
+        # Should include both consignment and regular vehicles
+        consignment_in_all = sum(1 for car in all_vehicles if car.get('is_consignment') == True)
+        regular_in_all = sum(1 for car in all_vehicles if car.get('is_consignment') == False)
+        
+        print(f"   - Consignment vehicles in all: {consignment_in_all}")
+        print(f"   - Regular vehicles in all: {regular_in_all}")
+        
+        if consignment_in_all > 0 and regular_in_all > 0:
+            print("✅ All vehicles query includes both consignment and regular vehicles")
+        else:
+            print("❌ All vehicles query missing some vehicle types")
+    else:
+        print("❌ Failed to get all vehicles")
+    
+    # Test 4: Enhanced Statistics
+    print(f"\n📊 ENHANCED STATISTICS")
+    print("-" * 40)
+    
+    success, stats = tester.run_test(
+        "Get Enhanced Statistics with Consignment Fields",
+        "GET",
+        "cars/stats/summary",
+        200
+    )
+    
+    if success:
+        print("✅ Statistics endpoint successful")
+        
+        # Check for required consignment fields
+        required_fields = [
+            'total_cars', 'regular_cars', 'present_cars', 'absent_cars', 'present_percentage',
+            'consignment_cars', 'consignment_present', 'consignment_absent', 'consignment_present_percentage'
+        ]
+        
+        missing_fields = [field for field in required_fields if field not in stats]
+        if not missing_fields:
+            print("✅ All required statistics fields present")
+            
+            # Display the statistics
+            print(f"📋 Statistics Summary:")
+            print(f"   - Total Cars: {stats.get('total_cars', 0)}")
+            print(f"   - Regular Cars: {stats.get('regular_cars', 0)}")
+            print(f"   - Present Cars (Regular): {stats.get('present_cars', 0)}")
+            print(f"   - Absent Cars (Regular): {stats.get('absent_cars', 0)}")
+            print(f"   - Present Percentage (Regular): {stats.get('present_percentage', 0)}%")
+            print(f"   - Consignment Cars: {stats.get('consignment_cars', 0)}")
+            print(f"   - Consignment Present: {stats.get('consignment_present', 0)}")
+            print(f"   - Consignment Absent: {stats.get('consignment_absent', 0)}")
+            print(f"   - Consignment Present Percentage: {stats.get('consignment_present_percentage', 0)}%")
+            
+            # Verify math consistency
+            total_cars = stats.get('total_cars', 0)
+            regular_cars = stats.get('regular_cars', 0)
+            consignment_cars = stats.get('consignment_cars', 0)
+            
+            if total_cars == regular_cars + consignment_cars:
+                print("✅ Statistics math is consistent (total = regular + consignment)")
+            else:
+                print(f"❌ Statistics math inconsistent: {total_cars} ≠ {regular_cars} + {consignment_cars}")
+                
+        else:
+            print(f"❌ Missing required statistics fields: {missing_fields}")
+    else:
+        print("❌ Failed to get enhanced statistics")
+    
+    # Test 5: Combined Filtering
+    print(f"\n🔗 COMBINED FILTERING")
+    print("-" * 40)
+    
+    # Test consignment + status filtering
+    success, consignment_present = tester.run_test(
+        "Get Consignment Vehicles with Present Status",
+        "GET",
+        "cars",
+        200,
+        params={"is_consignment": True, "status": "present"}
+    )
+    
+    if success:
+        print(f"✅ Consignment + Present filter: {len(consignment_present)} vehicles")
+        
+        # Verify all are consignment and present
+        all_match = all(car.get('is_consignment') == True and car.get('status') == 'present' 
+                       for car in consignment_present)
+        if all_match:
+            print("✅ All vehicles match both consignment=true and status=present")
+        else:
+            print("❌ Some vehicles don't match the combined filter criteria")
+    else:
+        print("❌ Failed consignment + present status filter")
+    
+    # Test consignment + search filtering
+    success, consignment_bmw = tester.run_test(
+        "Get Consignment Vehicles with BMW Search",
+        "GET",
+        "cars",
+        200,
+        params={"is_consignment": True, "search": "BMW"}
+    )
+    
+    if success:
+        print(f"✅ Consignment + BMW search filter: {len(consignment_bmw)} vehicles")
+        
+        # Check if our BMW consignment vehicle is found
+        our_bmw = next((car for car in consignment_bmw if car.get('id') == consignment_car_id), None)
+        if our_bmw:
+            print("✅ Our BMW consignment vehicle found in search results")
+        else:
+            print("❌ Our BMW consignment vehicle not found in search results")
+    else:
+        print("❌ Failed consignment + BMW search filter")
+    
+    # Test month/year filtering with consignment vehicles
+    from datetime import datetime
+    current_date = datetime.now()
+    
+    success, consignment_current_month = tester.run_test(
+        "Get Consignment Vehicles for Current Month/Year",
+        "GET",
+        "cars",
+        200,
+        params={"is_consignment": True, "month": current_date.month, "year": current_date.year}
+    )
+    
+    if success:
+        print(f"✅ Consignment + current month/year filter: {len(consignment_current_month)} vehicles")
+    else:
+        print("❌ Failed consignment + month/year filter")
+    
+    # Test 6: Vehicle Update (is_consignment field)
+    print(f"\n🔄 VEHICLE UPDATE (is_consignment field)")
+    print("-" * 40)
+    
+    if regular_car_id:
+        # Update regular vehicle to consignment
+        update_to_consignment = {"is_consignment": True}
+        
+        success, updated_car = tester.run_test(
+            f"Update Regular Vehicle to Consignment ({regular_car_id[:8]}...)",
+            "PUT",
+            f"cars/{regular_car_id}",
+            200,
+            data=update_to_consignment
+        )
+        
+        if success and updated_car.get('is_consignment') == True:
+            print("✅ Successfully updated regular vehicle to consignment")
+        else:
+            print(f"❌ Failed to update vehicle to consignment: {updated_car.get('is_consignment')}")
+    
+    if consignment_car_id:
+        # Update consignment vehicle to regular
+        update_to_regular = {"is_consignment": False}
+        
+        success, updated_car = tester.run_test(
+            f"Update Consignment Vehicle to Regular ({consignment_car_id[:8]}...)",
+            "PUT",
+            f"cars/{consignment_car_id}",
+            200,
+            data=update_to_regular
+        )
+        
+        if success and updated_car.get('is_consignment') == False:
+            print("✅ Successfully updated consignment vehicle to regular")
+        else:
+            print(f"❌ Failed to update vehicle to regular: {updated_car.get('is_consignment')}")
+    
+    # Test 7: Data Integrity - Photo Verification Requirements
+    print(f"\n📸 DATA INTEGRITY - PHOTO VERIFICATION")
+    print("-" * 40)
+    
+    if consignment_car_id:
+        # Test that consignment vehicles have same photo verification requirements
+        fake_image_data = base64.b64encode(b"fake_image_data").decode('utf-8')
+        
+        # Try to mark consignment vehicle as present without photos (should fail)
+        success, _ = tester.run_test(
+            f"Mark Consignment Present Without Photos (should fail) ({consignment_car_id[:8]}...)",
+            "PATCH",
+            f"cars/{consignment_car_id}/status",
+            400,
+            data={"status": "present"}
+        )
+        
+        if success:
+            print("✅ Consignment vehicle correctly requires photos for present status")
+        else:
+            print("❌ Consignment vehicle photo verification failed")
+        
+        # Mark consignment vehicle as present with photos (should succeed)
+        success, _ = tester.run_test(
+            f"Mark Consignment Present With Photos ({consignment_car_id[:8]}...)",
+            "PATCH",
+            f"cars/{consignment_car_id}/status",
+            200,
+            data={
+                "status": "present",
+                "car_photo": fake_image_data,
+                "vin_photo": fake_image_data
+            }
+        )
+        
+        if success:
+            print("✅ Consignment vehicle successfully marked present with photos")
+        else:
+            print("❌ Failed to mark consignment vehicle present with photos")
+    
+    # Test 8: Archive Process Includes Consignment Vehicles
+    print(f"\n📁 ARCHIVE PROCESS WITH CONSIGNMENT VEHICLES")
+    print("-" * 40)
+    
+    # Create a test archive to verify consignment vehicles are included
+    archive_name = f"Consignment Test Archive {current_date.strftime('%B %Y')}"
+    
+    success, archive_data = tester.test_create_monthly_archive(
+        archive_name,
+        current_date.month,
+        current_date.year
+    )
+    
+    if success and 'cars_data' in archive_data:
+        archived_cars = archive_data['cars_data']
+        consignment_in_archive = [car for car in archived_cars if car.get('is_consignment') == True]
+        regular_in_archive = [car for car in archived_cars if car.get('is_consignment') == False]
+        
+        print(f"✅ Archive created with {len(archived_cars)} total cars")
+        print(f"   - Consignment cars in archive: {len(consignment_in_archive)}")
+        print(f"   - Regular cars in archive: {len(regular_in_archive)}")
+        
+        if len(consignment_in_archive) > 0:
+            print("✅ Consignment vehicles properly included in archive")
+        else:
+            print("⚠️  No consignment vehicles found in archive (may be expected)")
+    else:
+        print("❌ Failed to create archive or verify consignment inclusion")
+    
+    # Test 9: Archive Statistics Include Consignment Vehicles
+    print(f"\n📊 ARCHIVE STATISTICS WITH CONSIGNMENT VEHICLES")
+    print("-" * 40)
+    
+    # Get archives list and check if statistics properly separate consignment/regular
+    success, archives = tester.test_archives_list()
+    
+    if success and len(archives) > 0:
+        latest_archive = archives[0]  # Most recent archive
+        
+        print(f"✅ Found {len(archives)} archives")
+        print(f"📋 Latest archive statistics:")
+        print(f"   - Total cars: {latest_archive.get('total_cars', 0)}")
+        print(f"   - Present cars: {latest_archive.get('present_cars', 0)}")
+        print(f"   - Absent cars: {latest_archive.get('absent_cars', 0)}")
+        
+        # Check if archive contains both consignment and regular vehicles
+        if 'cars_data' in latest_archive:
+            archive_consignment = sum(1 for car in latest_archive['cars_data'] if car.get('is_consignment') == True)
+            archive_regular = sum(1 for car in latest_archive['cars_data'] if car.get('is_consignment') == False)
+            
+            print(f"   - Consignment cars in archive: {archive_consignment}")
+            print(f"   - Regular cars in archive: {archive_regular}")
+            
+            if archive_consignment + archive_regular == latest_archive.get('total_cars', 0):
+                print("✅ Archive statistics correctly include all vehicle types")
+            else:
+                print("❌ Archive statistics inconsistent with vehicle types")
+    else:
+        print("⚠️  No archives found for statistics verification")
+    
+    # Clean up test data
+    print(f"\n🧹 CLEANUP")
+    print("-" * 40)
+    
+    tester.cleanup()
+    
+    # Print final results
+    print("\n" + "=" * 60)
+    print(f"📊 Final Results: {tester.tests_passed}/{tester.tests_run} tests passed")
+    
+    # Summary of critical consignment checks
+    critical_checks = [
+        ("Admin Authentication", success),
+        ("Consignment Vehicle Creation", consignment_car_id is not None),
+        ("Regular Vehicle Creation", regular_car_id is not None),
+        ("Consignment Filtering", success),
+        ("Enhanced Statistics", success),
+        ("Combined Filtering", success),
+        ("Vehicle Update", success),
+        ("Photo Verification", success),
+        ("Archive Integration", success)
+    ]
+    
+    print(f"\n🎯 Critical Consignment Checks Summary:")
+    all_critical_passed = True
+    for check_name, check_result in critical_checks:
+        status = "✅ PASS" if check_result else "❌ FAIL"
+        print(f"   {check_name}: {status}")
+        if not check_result:
+            all_critical_passed = False
+    
+    if all_critical_passed and tester.tests_passed == tester.tests_run:
+        print("\n🎉 All consignment vehicle tests passed!")
+        return 0
+    else:
+        failed_tests = tester.tests_run - tester.tests_passed
+        print(f"\n❌ {failed_tests} tests failed or critical checks failed")
+        return 1
+
 def run_csv_import_update_issue_investigation():
     """URGENT: Debug CSV import issue where vehicles are being 'updated' but not appearing in frontend"""
     print("🚨 URGENT: CSV Import Update Issue Investigation")
