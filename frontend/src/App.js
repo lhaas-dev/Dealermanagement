@@ -590,46 +590,51 @@ function App() {
             </div>
 
             {/* Rest of the existing inventory interface */}
-            {/* Controls */}
-            <div className="flex flex-col sm:flex-row gap-4 mb-6">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  placeholder="Suche nach Marke, Modell oder VIN..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
+            {/* Search and Filters */}
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 sm:mb-8">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    placeholder="Fahrzeuge suchen (Marke, Modell, VIN, Nummer)..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 h-10 sm:h-11"
+                  />
+                </div>
               </div>
               
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full sm:w-[180px]">
-                  <SelectValue placeholder="Nach Status filtern" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Alle Status</SelectItem>
-                  <SelectItem value="present">Anwesend</SelectItem>
-                  <SelectItem value="absent">Abwesend</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              <Select value={consignmentFilter} onValueChange={setConsignmentFilter}>
-                <SelectTrigger className="w-full sm:w-[200px]">
-                  <SelectValue placeholder="Fahrzeugtyp" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Alle Fahrzeuge</SelectItem>
-                  <SelectItem value="regular">Eigene Fahrzeuge</SelectItem>
-                  <SelectItem value="consignment">Konsignationen</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="grid grid-cols-2 sm:flex gap-2 sm:gap-3">
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-full sm:w-[180px] h-10 sm:h-11">
+                    <SelectValue placeholder="Status Filter" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Alle Status</SelectItem>
+                    <SelectItem value="present">Anwesend</SelectItem>
+                    <SelectItem value="absent">Abwesend</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                <Select value={consignmentFilter} onValueChange={setConsignmentFilter}>
+                  <SelectTrigger className="w-full sm:w-[180px] h-10 sm:h-11">
+                    <SelectValue placeholder="Fahrzeugtyp" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Alle Fahrzeuge</SelectItem>
+                    <SelectItem value="regular">Eigene Fahrzeuge</SelectItem>
+                    <SelectItem value="consignment">Konsignationen</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
               {/* CSV Upload Dialog */}
               <Dialog open={showCSVDialog} onOpenChange={setShowCSVDialog}>
                 <DialogTrigger asChild>
-                  <Button variant="outline">
+                  <Button variant="outline" className="w-full sm:w-auto h-10 sm:h-11">
                     <Upload className="w-4 h-4 mr-2" />
-                    CSV Import
+                    <span className="hidden sm:inline">CSV Import</span>
+                    <span className="sm:hidden">Import</span>
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
