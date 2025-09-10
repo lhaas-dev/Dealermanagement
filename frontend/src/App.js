@@ -761,10 +761,10 @@ function App() {
               </Dialog>
             </div>
 
-            {/* Action Buttons */}
+            {/* Action Buttons - Desktop-optimiert */}
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 sm:mb-8">
-              <Button onClick={() => setShowAddDialog(true)} className="flex-1 sm:flex-none h-11 sm:h-10">
-                <Plus className="w-4 h-4 sm:mr-2" />
+              <Button onClick={() => setShowAddDialog(true)} className="h-11 sm:h-10 lg:h-9">
+                <Plus className="w-4 h-4 mr-2" />
                 <span>Fahrzeug hinzufügen</span>
               </Button>
               
@@ -772,11 +772,10 @@ function App() {
                 <Button
                   onClick={deleteAllCars}
                   variant="destructive"
-                  className="flex-1 sm:flex-none h-11 sm:h-10"
+                  className="h-11 sm:h-10 lg:h-9"
                 >
-                  <Trash2 className="w-4 h-4 sm:mr-2" />
-                  <span className="hidden sm:inline">Alle löschen</span>
-                  <span className="sm:hidden">Löschen</span>
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  <span>Alle löschen</span>
                 </Button>
               )}
             </div>
