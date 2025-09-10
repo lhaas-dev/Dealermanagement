@@ -900,7 +900,7 @@ function App() {
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => editCar(car)}
+                              onClick={() => openEditDialog(car)}
                               className="text-xs sm:text-sm h-8 sm:h-9 lg:h-8 w-full sm:w-auto lg:w-auto"
                             >
                               <Edit className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
