@@ -490,26 +490,26 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 px-2 sm:px-4 lg:px-8">
+      <div className="container mx-auto py-4 sm:py-8">
         {/* Header with User Info */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
           <div>
-            <h1 className="text-4xl font-bold text-slate-800 mb-2 flex items-center gap-3">
-              <Car className="w-10 h-10 text-blue-600" />
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-800 mb-2 flex items-center gap-2 sm:gap-3">
+              <Car className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 text-blue-600" />
               Dealership Inventory
             </h1>
-            <p className="text-slate-600">Fahrzeug-Inventarsystem mit Foto-Verifizierung</p>
+            <p className="text-sm sm:text-base text-slate-600">Fahrzeug-Inventarsystem mit Foto-Verifizierung</p>
           </div>
           
-          <div className="flex items-center gap-4">
-            <div className="text-right">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
+            <div className="text-left sm:text-right">
               <p className="font-semibold text-slate-800">{user.username}</p>
-              <p className="text-sm text-slate-600">
+              <p className="text-xs sm:text-sm text-slate-600">
                 {user.role === 'admin' ? 'Administrator' : 'Benutzer'}
               </p>
             </div>
-            <Button variant="outline" onClick={handleLogout}>
+            <Button variant="outline" onClick={handleLogout} size="sm" className="w-full sm:w-auto">
               <LogOut className="w-4 h-4 mr-2" />
               Abmelden
             </Button>
