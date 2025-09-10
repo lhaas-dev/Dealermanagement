@@ -834,53 +834,61 @@ function App() {
                           )}
                         </div>
                       )}
-                      <CardHeader>
+                      <CardHeader className="p-3 sm:p-6">
                         <div className="flex justify-between items-start">
-                          <div>
-                            <CardTitle className="text-lg">{car.make} {car.model}</CardTitle>
-                            <CardDescription>Nr. {car.number}</CardDescription>
+                          <div className="flex-1 min-w-0">
+                            <CardTitle className="text-base sm:text-lg truncate">{car.make} {car.model}</CardTitle>
+                            <CardDescription className="text-sm">Nr. {car.number}</CardDescription>
                           </div>
-                          <div className="flex flex-col gap-1">
-                            <Badge variant={car.status === 'present' ? 'default' : 'destructive'}>
-                              {car.status === 'present' ? 'Anwesend' : 'Abwesend'}
+                          <div className="flex flex-col gap-1 ml-2">
+                            <Badge variant={car.status === 'present' ? 'default' : 'destructive'} className="text-xs">
+                              <span className="hidden sm:inline">{car.status === 'present' ? 'Anwesend' : 'Abwesend'}</span>
+                              <span className="sm:hidden">{car.status === 'present' ? 'Da' : 'Weg'}</span>
                               {car.status === 'present' && car.car_photo && (
-                                <Camera className="w-3 h-3 ml-1" title="Foto verifiziert" />
+                                <Camera className="w-2 h-2 sm:w-3 sm:h-3 ml-1" title="Foto verifiziert" />
                               )}
                             </Badge>
                             {car.is_consignment && (
                               <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-800">
-                                Konsignation
+                                <span className="hidden sm:inline">Konsignation</span>
+                                <span className="sm:hidden">Kons.</span>
                               </Badge>
                             )}
                           </div>
                         </div>
                       </CardHeader>
-                      <CardContent>
+                      <CardContent className="p-3 sm:p-6 pt-0">
                         <div className="space-y-2">
                           {car.purchase_date && (
-                            <p className="text-lg font-semibold text-blue-600">
-                              Eingekauft: {new Date(car.purchase_date).toLocaleDateString('de-DE')}
+                            <p className="text-sm sm:text-base font-semibold text-blue-600">
+                              <span className="hidden sm:inline">Eingekauft: </span>
+                              <span className="sm:hidden">Gekauft: </span>
+                              {new Date(car.purchase_date).toLocaleDateString('de-DE')}
                             </p>
                           )}
                           {car.vin && (
-                            <p className="text-sm text-gray-600">VIN: {car.vin}</p>
+                            <p className="text-xs sm:text-sm text-gray-600 truncate">
+                              VIN: {car.vin}
+                            </p>
                           )}
-                          <div className="flex gap-2 pt-4">
+                          <div className="flex flex-col sm:flex-row gap-2 pt-3 sm:pt-4">
                             <Button
                               size="sm"
                               variant={car.status === 'present' ? 'destructive' : 'default'}
                               onClick={() => toggleCarStatus(car)}
-                              className="flex-1"
+                              className="flex-1 text-xs sm:text-sm h-8 sm:h-9"
                             >
                               {car.status === 'present' ? (
                                 <>
-                                  <XCircle className="w-4 h-4 mr-1" />
-                                  Als abwesend markieren
+                                  <XCircle className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-1" />
+                                  <span className="hidden sm:inline">Als abwesend markieren</span>
+                                  <span className="sm:hidden">Abwesend</span>
                                 </>
                               ) : (
                                 <>
-                                  <CheckCircle className="w-4 h-4 mr-1" />
-                                  Als anwesend markieren
+                                  <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-1" />
+                                  <span className="hidden sm:inline">Als anwesend markieren</span>
+                                  <span className="sm:hidden">Anwesend</span>
                                 </>
                               )}
                             </Button>
@@ -888,8 +896,11 @@ function App() {
                               size="sm"
                               variant="outline"
                               onClick={() => openEditDialog(car)}
+                              className="flex-none text-xs sm:text-sm h-8 sm:h-9 w-full sm:w-auto"
                             >
-                              <Edit className="w-4 h-4" />
+                              <Edit className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-1" />
+                              <span className="hidden sm:inline">Bearbeiten</span>
+                              <span className="sm:hidden">Edit</span>
                             </Button>
                             {/* Delete button only for admins */}
                             {user.role === 'admin' && (
@@ -897,9 +908,11 @@ function App() {
                                 size="sm"
                                 variant="outline"
                                 onClick={() => deleteCar(car.id)}
-                                className="text-red-600 hover:text-red-700"
+                                className="text-red-600 hover:text-red-700 flex-none text-xs sm:text-sm h-8 sm:h-9 w-full sm:w-auto"
                               >
-                                <Trash2 className="w-4 h-4" />
+                                <Trash2 className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-1" />
+                                <span className="hidden sm:inline">Löschen</span>
+                                <span className="sm:hidden">Del</span>
                               </Button>
                             )}
                           </div>
