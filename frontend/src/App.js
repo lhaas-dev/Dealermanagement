@@ -880,53 +880,55 @@ function App() {
                               VIN: {car.vin}
                             </p>
                           )}
-                          <div className="flex flex-col sm:flex-row gap-2 pt-3 sm:pt-4">
-                            <Button
-                              size="sm"
-                              variant={car.status === 'present' ? 'destructive' : 'default'}
-                              onClick={() => toggleCarStatus(car)}
-                              className="flex-1 text-xs sm:text-sm h-8 sm:h-9 lg:h-8"
-                            >
-                              {car.status === 'present' ? (
-                                <>
-                                  <XCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                                  <span className="hidden sm:inline">Als abwesend markieren</span>
-                                  <span className="sm:hidden">Abwesend</span>
-                                </>
-                              ) : (
-                                <>
-                                  <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                                  <span className="hidden sm:inline">Als anwesend markieren</span>
-                                  <span className="sm:hidden">Anwesend</span>
-                                </>
-                              )}
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => openEditDialog(car)}
-                              className="text-xs sm:text-sm h-8 sm:h-9 lg:h-8 w-full sm:w-auto lg:w-auto"
-                            >
-                              <Edit className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                              <span className="hidden sm:inline">Bearbeiten</span>
-                              <span className="sm:hidden">Edit</span>
-                            </Button>
+                          <div className="space-y-2 pt-3 sm:pt-4">
+                            {/* Erste Zeile: Status und Bearbeiten */}
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant={car.status === 'present' ? 'destructive' : 'default'}
+                                onClick={() => toggleCarStatus(car)}
+                                className="flex-1 text-xs sm:text-sm h-8 sm:h-9 lg:h-8"
+                              >
+                                {car.status === 'present' ? (
+                                  <>
+                                    <XCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                                    <span className="hidden sm:inline">Als abwesend markieren</span>
+                                    <span className="sm:hidden">Abwesend</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                                    <span className="hidden sm:inline">Als anwesend markieren</span>
+                                    <span className="sm:hidden">Anwesend</span>
+                                  </>
+                                )}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => openEditDialog(car)}
+                                className="text-xs sm:text-sm h-8 sm:h-9 lg:h-8 w-full sm:w-auto lg:w-auto"
+                              >
+                                <Edit className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                                <span className="hidden sm:inline">Bearbeiten</span>
+                                <span className="sm:hidden">Edit</span>
+                              </Button>
+                            </div>
                             
-                            {/* Delete button - ALWAYS render for admin, force visibility */}
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => deleteCar(car.id)}
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50 text-xs sm:text-sm h-8 sm:h-9 lg:h-8 w-full sm:w-auto lg:w-auto"
-                              style={{ 
-                                display: isAdmin ? 'inline-flex' : 'none',
-                                visibility: isAdmin ? 'visible' : 'hidden'
-                              }}
-                            >
-                              <Trash2 className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                              <span className="hidden sm:inline">Löschen</span>
-                              <span className="sm:hidden">Del</span>
-                            </Button>
+                            {/* Zweite Zeile: Löschen-Button (nur für Admins) */}
+                            {isAdmin && (
+                              <div className="flex">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => deleteCar(car.id)}
+                                  className="w-full text-red-600 hover:text-red-700 hover:bg-red-50 text-xs sm:text-sm h-8 sm:h-9 lg:h-8"
+                                >
+                                  <Trash2 className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                                  <span>Fahrzeug löschen</span>
+                                </Button>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </CardContent>
