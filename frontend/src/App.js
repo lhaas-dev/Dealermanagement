@@ -754,7 +754,7 @@ function App() {
                       </div>
                     </div>
                     <DialogFooter>
-                      <Button type="submit" className="w-full h-12 sm:h-11 text-sm sm:text-base">Fahrzeug hinzufügen</Button>
+                      <Button type="submit" className="w-full h-12 sm:h-11 lg:h-10 text-sm sm:text-base">Fahrzeug hinzufügen</Button>
                     </DialogFooter>
                   </form>
                 </DialogContent>
