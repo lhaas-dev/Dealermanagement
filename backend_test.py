@@ -2704,12 +2704,12 @@ Audi,A4 Import Test,AUDI-IMP-003,2024-03-10,WAUZZZ8K1DA333333"""
         return 1
 
 def main():
-    """Main test runner - focuses on frontend fix for CSV import display"""
-    print("🚗 Testing Frontend Fix for CSV Import Display Issue")
+    """Main test runner - focuses on consignment vehicle functionality"""
+    print("🚗 Testing Comprehensive Consignment Vehicle Functionality")
     print("=" * 60)
     
-    # Run the specific frontend fix test as requested
-    return run_csv_import_frontend_fix_test()
+    # Run the comprehensive consignment vehicle tests as requested
+    return run_consignment_vehicle_tests()
 
 if __name__ == "__main__":
     sys.exit(main())
