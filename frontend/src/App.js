@@ -1001,7 +1001,7 @@ function App() {
                   <Button
                     onClick={handleMarkPresent}
                     disabled={!carPhoto || !vinPhoto}
-                    className="w-full h-12 sm:h-11 text-sm sm:text-base"
+                    className="w-full h-12 sm:h-11 lg:h-10 text-sm sm:text-base"
                   >
                     Als anwesend markieren
                   </Button>
