@@ -136,6 +136,8 @@ function App() {
       const params = new URLSearchParams();
       if (searchTerm) params.append('search', searchTerm);
       if (statusFilter && statusFilter !== 'all') params.append('status', statusFilter);
+      if (consignmentFilter === 'consignment') params.append('is_consignment', 'true');
+      if (consignmentFilter === 'regular') params.append('is_consignment', 'false');
       // Only add month/year filters if they are explicitly set (not null)
       // This allows showing all active cars when no specific month/year is selected
       if (selectedMonth && selectedYear) {
