@@ -102,7 +102,7 @@ function App() {
       };
       loadData();
     }
-  }, [isAuthenticated, searchTerm, statusFilter, selectedMonth, selectedYear, currentTab]);
+  }, [isAuthenticated, searchTerm, statusFilter, consignmentFilter, selectedMonth, selectedYear, currentTab]);
 
   // Handle login
   const handleLogin = (loginData) => {
