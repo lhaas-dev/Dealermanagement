@@ -189,6 +189,7 @@ class CarCreate(BaseModel):
     purchase_date: Optional[str] = None
     image_url: Optional[str] = None
     vin: Optional[str] = None
+    is_consignment: bool = False
 
 
 class CarUpdate(BaseModel):
