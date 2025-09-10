@@ -200,6 +200,7 @@ class CarUpdate(BaseModel):
     image_url: Optional[str] = None
     status: Optional[CarStatus] = None
     vin: Optional[str] = None
+    is_consignment: Optional[bool] = None
 
 
 class StatusUpdate(BaseModel):
