@@ -797,6 +797,9 @@ function App() {
                   
                   const isVerificationPhoto = car.status === 'present' && car.car_photo;
                   
+                  // Explicitly check admin status for each card rendering
+                  const isAdmin = user && user.role === 'admin';
+                  
                   return (
                     <Card key={car.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                       {displayImage && (
