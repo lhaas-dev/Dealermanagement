@@ -590,6 +590,7 @@ async def get_cars(
     search: Optional[str] = None,
     month: Optional[int] = None,
     year: Optional[int] = None,
+    is_consignment: Optional[bool] = None,
     current_user: User = Depends(get_current_user)
 ):
     """Get all active cars with optional filtering"""
@@ -608,6 +609,8 @@ async def get_cars(
         query["model"] = {"$regex": model, "$options": "i"}
     if status:
         query["status"] = status
+    if is_consignment is not None:
+        query["is_consignment"] = is_consignment
     if search:
         query["$or"] = [
             {"make": {"$regex": search, "$options": "i"}},
