@@ -62,7 +62,8 @@ function App() {
     number: "",
     purchase_date: "",
     image_url: "",
-    vin: ""
+    vin: "",
+    is_consignment: false
   });
 
   // Check for existing authentication on component mount
