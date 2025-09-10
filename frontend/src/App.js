@@ -778,9 +778,12 @@ function App() {
             {/* Rest of the cars grid and dialogs - keeping existing code */}
             {/* Cars Grid */}
             {loading ? (
-              <div className="text-center py-8">Wird geladen...</div>
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <p className="text-sm sm:text-base text-gray-600">Wird geladen...</p>
+              </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                 {cars.map((car) => {
                   // Use verification photo if car is present and has car_photo, otherwise use image_url
                   const displayImage = car.status === 'present' && car.car_photo 
@@ -792,7 +795,7 @@ function App() {
                   return (
                     <Card key={car.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                       {displayImage && (
-                        <div className="h-48 bg-gray-200 overflow-hidden relative">
+                        <div className="h-36 sm:h-48 bg-gray-200 overflow-hidden relative">
                           <img
                             src={displayImage}
                             alt={`${car.make} ${car.model}`}
@@ -802,9 +805,10 @@ function App() {
                             }}
                           />
                           {isVerificationPhoto && (
-                            <div className="absolute top-2 left-2 bg-green-600 text-white px-2 py-1 rounded-full text-xs flex items-center gap-1">
-                              <Camera className="w-3 h-3" />
-                              Verified
+                            <div className="absolute top-1 sm:top-2 left-1 sm:left-2 bg-green-600 text-white px-1 sm:px-2 py-0.5 sm:py-1 rounded-full text-xs flex items-center gap-1">
+                              <Camera className="w-2 h-2 sm:w-3 sm:h-3" />
+                              <span className="hidden sm:inline">Verified</span>
+                              <span className="sm:hidden">✓</span>
                             </div>
                           )}
                           {car.status === 'present' && car.vin_photo && (
@@ -822,10 +826,10 @@ function App() {
                                   </html>
                                 `);
                               }}
-                              className="absolute top-2 right-2 bg-blue-600 text-white p-1 rounded-full hover:bg-blue-700 transition-colors"
+                              className="absolute top-1 sm:top-2 right-1 sm:right-2 bg-blue-600 text-white p-0.5 sm:p-1 rounded-full hover:bg-blue-700 transition-colors"
                               title="VIN-Foto anzeigen"
                             >
-                              <FileText className="w-3 h-3" />
+                              <FileText className="w-2 h-2 sm:w-3 sm:h-3" />
                             </button>
                           )}
                         </div>
