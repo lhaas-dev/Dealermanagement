@@ -1104,16 +1104,17 @@ function App() {
             </Dialog>
 
             {cars.length === 0 && !loading && (
-              <div className="text-center py-12">
-                <Car className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-600 mb-2">Keine Fahrzeuge gefunden</h3>
-                <p className="text-gray-500 mb-4">Beginnen Sie, indem Sie Fahrzeuge einzeln hinzufügen oder aus CSV importieren.</p>
-                <div className="flex justify-center gap-4">
-                  <Button onClick={() => setShowAddDialog(true)}>
+              <div className="text-center py-12 px-4">
+                <Car className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-base sm:text-lg font-semibold text-gray-600 mb-2">Keine Fahrzeuge gefunden</h3>
+                <p className="text-sm sm:text-base text-gray-500 mb-6">Beginnen Sie, indem Sie Fahrzeuge einzeln hinzufügen oder aus CSV importieren.</p>
+                <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 max-w-sm sm:max-w-none mx-auto">
+                  <Button onClick={() => setShowAddDialog(true)} className="h-11 sm:h-10">
                     <Plus className="w-4 h-4 mr-2" />
-                    Erstes Fahrzeug hinzufügen
+                    <span className="hidden sm:inline">Erstes Fahrzeug hinzufügen</span>
+                    <span className="sm:hidden">Fahrzeug hinzufügen</span>
                   </Button>
-                  <Button variant="outline" onClick={() => setShowCSVDialog(true)}>
+                  <Button variant="outline" onClick={() => setShowCSVDialog(true)} className="h-11 sm:h-10">
                     <Upload className="w-4 h-4 mr-2" />
                     CSV importieren
                   </Button>
