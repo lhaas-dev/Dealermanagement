@@ -669,12 +669,6 @@ function App() {
               </Dialog>
 
               <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-                <DialogTrigger asChild>
-                  <Button onClick={resetForm}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Fahrzeug hinzufügen
-                  </Button>
-                </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>Neues Fahrzeug hinzufügen</DialogTitle>
