@@ -1012,86 +1012,92 @@ function App() {
 
             {/* Edit Dialog */}
             <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-              <DialogContent>
+              <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>Fahrzeug bearbeiten</DialogTitle>
-                  <DialogDescription>Fahrzeug-Informationen aktualisieren</DialogDescription>
+                  <DialogTitle className="text-lg sm:text-xl">Fahrzeug bearbeiten</DialogTitle>
+                  <DialogDescription className="text-sm sm:text-base">Fahrzeug-Informationen aktualisieren</DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit}>
                   <div className="grid gap-4 py-4">
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="edit-make">Marke</Label>
+                        <Label htmlFor="edit-make" className="text-sm font-medium">Marke</Label>
                         <Input
                           id="edit-make"
                           required
                           value={formData.make}
                           onChange={(e) => setFormData({...formData, make: e.target.value})}
+                          className="h-11 sm:h-10 text-sm sm:text-base"
                         />
                       </div>
                       <div>
-                        <Label htmlFor="edit-model">Modell</Label>
+                        <Label htmlFor="edit-model" className="text-sm font-medium">Modell</Label>
                         <Input
                           id="edit-model"
                           required
                           value={formData.model}
                           onChange={(e) => setFormData({...formData, model: e.target.value})}
+                          className="h-11 sm:h-10 text-sm sm:text-base"
                         />
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="edit-number">Nummer</Label>
+                        <Label htmlFor="edit-number" className="text-sm font-medium">Nummer</Label>
                         <Input
                           id="edit-number"
                           required
                           value={formData.number}
                           onChange={(e) => setFormData({...formData, number: e.target.value})}
+                          className="h-11 sm:h-10 text-sm sm:text-base"
                         />
                       </div>
                       <div>
-                        <Label htmlFor="edit-purchase_date">Einkaufsdatum</Label>
+                        <Label htmlFor="edit-purchase_date" className="text-sm font-medium">Einkaufsdatum</Label>
                         <Input
                           id="edit-purchase_date"
                           type="date"
                           value={formData.purchase_date}
                           onChange={(e) => setFormData({...formData, purchase_date: e.target.value})}
+                          className="h-11 sm:h-10 text-sm sm:text-base"
                         />
                       </div>
                     </div>
                     <div>
-                      <Label htmlFor="edit-vin">VIN</Label>
+                      <Label htmlFor="edit-vin" className="text-sm font-medium">VIN</Label>
                       <Input
                         id="edit-vin"
                         value={formData.vin}
                         onChange={(e) => setFormData({...formData, vin: e.target.value})}
+                        className="h-11 sm:h-10 text-sm sm:text-base"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="edit-image_url">Bild-URL</Label>
+                      <Label htmlFor="edit-image_url" className="text-sm font-medium">Bild-URL</Label>
                       <Input
                         id="edit-image_url"
                         type="url"
                         value={formData.image_url}
                         onChange={(e) => setFormData({...formData, image_url: e.target.value})}
+                        className="h-11 sm:h-10 text-sm sm:text-base"
                       />
                     </div>
                     
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg">
                       <input
                         id="edit_is_consignment"
                         type="checkbox"
                         checked={formData.is_consignment}
                         onChange={(e) => setFormData({...formData, is_consignment: e.target.checked})}
-                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                        className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
                       />
-                      <Label htmlFor="edit_is_consignment" className="text-sm font-medium text-gray-900">
+                      <Label htmlFor="edit_is_consignment" className="text-sm font-medium text-gray-900 cursor-pointer">
                         Konsignations-Fahrzeug (gehört nicht uns)
                       </Label>
                     </div>
                   </div>
                   <DialogFooter>
-                    <Button type="submit">Fahrzeug aktualisieren</Button>
+                    <Button type="submit" className="w-full h-12 sm:h-11 text-sm sm:text-base">Fahrzeug aktualisieren</Button>
                   </DialogFooter>
                 </form>
               </DialogContent>
