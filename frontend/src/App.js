@@ -912,19 +912,21 @@ function App() {
                               <span className="sm:hidden">Edit</span>
                             </Button>
                             
-                            {/* Delete button only for admins */}
-                            {isAdmin && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => deleteCar(car.id)}
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50 text-xs sm:text-sm h-8 sm:h-9 lg:h-8 w-full sm:w-auto lg:w-auto"
-                              >
-                                <Trash2 className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                                <span className="hidden sm:inline">Löschen</span>
-                                <span className="sm:hidden">Del</span>
-                              </Button>
-                            )}
+                            {/* Delete button - ALWAYS render for admin, force visibility */}
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => deleteCar(car.id)}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50 text-xs sm:text-sm h-8 sm:h-9 lg:h-8 w-full sm:w-auto lg:w-auto"
+                              style={{ 
+                                display: isAdmin ? 'inline-flex' : 'none',
+                                visibility: isAdmin ? 'visible' : 'hidden'
+                              }}
+                            >
+                              <Trash2 className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                              <span className="hidden sm:inline">Löschen</span>
+                              <span className="sm:hidden">Del</span>
+                            </Button>
                           </div>
                         </div>
                       </CardContent>
