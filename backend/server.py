@@ -174,6 +174,7 @@ class Car(BaseModel):
     vin: Optional[str] = None
     car_photo: Optional[str] = None  # Base64 encoded photo of the car
     vin_photo: Optional[str] = None  # Base64 encoded photo of the VIN
+    is_consignment: bool = False  # New field for consignment vehicles
     current_month: int = Field(default_factory=lambda: datetime.now(timezone.utc).month)
     current_year: int = Field(default_factory=lambda: datetime.now(timezone.utc).year)
     archive_status: ArchiveStatus = ArchiveStatus.active
