@@ -475,7 +475,8 @@ function App() {
       number: car.number,
       purchase_date: car.purchase_date || "",
       image_url: car.image_url || "",
-      vin: car.vin || ""
+      vin: car.vin || "",
+      is_consignment: car.is_consignment || false
     });
     setShowEditDialog(true);
   };
