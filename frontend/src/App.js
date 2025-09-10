@@ -482,7 +482,7 @@ function App() {
   };
 
   const resetForm = () => {
-    setFormData({ make: "", model: "", number: "", purchase_date: "", image_url: "", vin: "" });
+    setFormData({ make: "", model: "", number: "", purchase_date: "", image_url: "", vin: "", is_consignment: false });
     setEditingCar(null);
   };
 
