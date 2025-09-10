@@ -669,86 +669,92 @@ function App() {
               </Dialog>
 
               <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-                <DialogContent>
+                <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
-                    <DialogTitle>Neues Fahrzeug hinzufügen</DialogTitle>
-                    <DialogDescription>Neues Fahrzeug zum Inventar hinzufügen (wird als abwesend markiert)</DialogDescription>
+                    <DialogTitle className="text-lg sm:text-xl">Neues Fahrzeug hinzufügen</DialogTitle>
+                    <DialogDescription className="text-sm sm:text-base">Neues Fahrzeug zum Inventar hinzufügen (wird als abwesend markiert)</DialogDescription>
                   </DialogHeader>
                   <form onSubmit={handleSubmit}>
                     <div className="grid gap-4 py-4">
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                          <Label htmlFor="make">Marke</Label>
+                          <Label htmlFor="make" className="text-sm font-medium">Marke</Label>
                           <Input
                             id="make"
                             required
                             value={formData.make}
                             onChange={(e) => setFormData({...formData, make: e.target.value})}
+                            className="h-11 sm:h-10 text-sm sm:text-base"
                           />
                         </div>
                         <div>
-                          <Label htmlFor="model">Modell</Label>
+                          <Label htmlFor="model" className="text-sm font-medium">Modell</Label>
                           <Input
                             id="model"
                             required
                             value={formData.model}
                             onChange={(e) => setFormData({...formData, model: e.target.value})}
+                            className="h-11 sm:h-10 text-sm sm:text-base"
                           />
                         </div>
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                          <Label htmlFor="number">Nummer</Label>
+                          <Label htmlFor="number" className="text-sm font-medium">Nummer</Label>
                           <Input
                             id="number"
                             required
                             value={formData.number}
                             onChange={(e) => setFormData({...formData, number: e.target.value})}
+                            className="h-11 sm:h-10 text-sm sm:text-base"
                           />
                         </div>
                         <div>
-                          <Label htmlFor="purchase_date">Einkaufsdatum</Label>
+                          <Label htmlFor="purchase_date" className="text-sm font-medium">Einkaufsdatum</Label>
                           <Input
                             id="purchase_date"
                             type="date"
                             value={formData.purchase_date}
                             onChange={(e) => setFormData({...formData, purchase_date: e.target.value})}
+                            className="h-11 sm:h-10 text-sm sm:text-base"
                           />
                         </div>
                       </div>
                       <div>
-                        <Label htmlFor="vin">VIN</Label>
+                        <Label htmlFor="vin" className="text-sm font-medium">VIN</Label>
                         <Input
                           id="vin"
                           value={formData.vin}
                           onChange={(e) => setFormData({...formData, vin: e.target.value})}
+                          className="h-11 sm:h-10 text-sm sm:text-base"
                         />
                       </div>
                       <div>
-                        <Label htmlFor="image_url">Bild-URL</Label>
+                        <Label htmlFor="image_url" className="text-sm font-medium">Bild-URL</Label>
                         <Input
                           id="image_url"
                           type="url"
                           value={formData.image_url}
                           onChange={(e) => setFormData({...formData, image_url: e.target.value})}
+                          className="h-11 sm:h-10 text-sm sm:text-base"
                         />
                       </div>
                       
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg">
                         <input
                           id="is_consignment"
                           type="checkbox"
                           checked={formData.is_consignment}
                           onChange={(e) => setFormData({...formData, is_consignment: e.target.checked})}
-                          className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                          className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
                         />
-                        <Label htmlFor="is_consignment" className="text-sm font-medium text-gray-900">
+                        <Label htmlFor="is_consignment" className="text-sm font-medium text-gray-900 cursor-pointer">
                           Konsignations-Fahrzeug (gehört nicht uns)
                         </Label>
                       </div>
                     </div>
                     <DialogFooter>
-                      <Button type="submit">Fahrzeug hinzufügen</Button>
+                      <Button type="submit" className="w-full h-12 sm:h-11 text-sm sm:text-base">Fahrzeug hinzufügen</Button>
                     </DialogFooter>
                   </form>
                 </DialogContent>
