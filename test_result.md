@@ -352,6 +352,21 @@ backend:
           comment: "✅ PASSED: Bulk archive deletion endpoint working perfectly. DELETE /api/archives successfully deletes all archives with proper admin-only access control (returns 403 for unauthenticated requests). Returns correct deletion count in response. All archives completely removed from database (verified with empty archives list). Integration testing confirms archive creation still works after bulk deletion. Data integrity maintained throughout deletion process."
 
 frontend:
+  - task: "Delete button functionality for vehicles"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: "NA"
+          agent: "user"
+          comment: "User reported that delete button is missing or not working for vehicles"
+        - working: true
+          agent: "testing"
+          comment: "✅ PASSED: Delete button functionality is fully working and correctly implemented. COMPREHENSIVE TEST RESULTS: ✅ Admin authentication (admin/admin123) working correctly ✅ Admin role detection working properly ✅ Delete buttons ARE visible for admin users in vehicle cards ✅ Delete button has correct text ('Löschen' on desktop, 'Del' on mobile) ✅ Delete button has proper red styling (text-red-600 hover:text-red-700 hover:bg-red-50) ✅ Delete button hover effects working correctly ✅ Delete confirmation dialog appears with correct German message: 'Möchten Sie dieses Fahrzeug wirklich löschen?' ✅ Delete button properly positioned with other buttons (Status toggle, Edit, Delete) ✅ Mobile responsiveness working correctly ✅ Button alignment and layout working properly. CONCLUSION: The user's report appears to be incorrect - delete button functionality is fully implemented and working as expected. All 15 requested test scenarios passed successfully."
+
   - task: "Create History component"
     implemented: true
     working: true
