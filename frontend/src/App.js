@@ -829,12 +829,19 @@ function App() {
                             <CardTitle className="text-lg">{car.make} {car.model}</CardTitle>
                             <CardDescription>Nr. {car.number}</CardDescription>
                           </div>
-                          <Badge variant={car.status === 'present' ? 'default' : 'destructive'}>
-                            {car.status === 'present' ? 'Anwesend' : 'Abwesend'}
-                            {car.status === 'present' && car.car_photo && (
-                              <Camera className="w-3 h-3 ml-1" title="Foto verifiziert" />
+                          <div className="flex flex-col gap-1">
+                            <Badge variant={car.status === 'present' ? 'default' : 'destructive'}>
+                              {car.status === 'present' ? 'Anwesend' : 'Abwesend'}
+                              {car.status === 'present' && car.car_photo && (
+                                <Camera className="w-3 h-3 ml-1" title="Foto verifiziert" />
+                              )}
+                            </Badge>
+                            {car.is_consignment && (
+                              <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-800">
+                                Konsignation
+                              </Badge>
                             )}
-                          </Badge>
+                          </div>
                         </div>
                       </CardHeader>
                       <CardContent>
