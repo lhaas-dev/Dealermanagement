@@ -606,7 +606,7 @@ function App() {
               
               <div className="grid grid-cols-2 sm:flex gap-2 sm:gap-3">
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-full sm:w-[180px] h-10 sm:h-11">
+                  <SelectTrigger className="w-full sm:w-[160px] lg:w-[180px] h-10 sm:h-11 lg:h-10">
                     <SelectValue placeholder="Status Filter" />
                   </SelectTrigger>
                   <SelectContent>
@@ -617,7 +617,7 @@ function App() {
                 </Select>
                 
                 <Select value={consignmentFilter} onValueChange={setConsignmentFilter}>
-                  <SelectTrigger className="w-full sm:w-[180px] h-10 sm:h-11">
+                  <SelectTrigger className="w-full sm:w-[160px] lg:w-[180px] h-10 sm:h-11 lg:h-10">
                     <SelectValue placeholder="Fahrzeugtyp" />
                   </SelectTrigger>
                   <SelectContent>
@@ -631,7 +631,7 @@ function App() {
               {/* CSV Upload Dialog */}
               <Dialog open={showCSVDialog} onOpenChange={setShowCSVDialog}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" className="w-full sm:w-auto h-10 sm:h-11">
+                  <Button variant="outline" className="w-full sm:w-auto h-10 sm:h-11 lg:h-10">
                     <Upload className="w-4 h-4 mr-2" />
                     <span className="hidden sm:inline">CSV Import</span>
                     <span className="sm:hidden">Import</span>
